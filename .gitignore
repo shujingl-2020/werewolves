@@ -1,6 +1,22 @@
+*.log
+*.pot
 *.pyc
+local_settings.py
+
+# Django's SQL Lite Database File
 db.sqlite3
-migrations
+
+# Django generated migrations
+0*.py
+
 .DS_Store
-*.swp
+
+# Virtual Environments, IDE, Editor backup files
+venv
+my_env
 *~
+*#
+.idea
+
+# Image folder
+images
