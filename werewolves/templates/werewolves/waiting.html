@@ -1,0 +1,29 @@
+{% extends "werewolves/base.html" %}
+
+{% block content %}
+
+<section>
+    <div class="players">
+        Players: <br>
+        <ul class="player-list" id="id_player_list">
+            <li id="id_player_1"> Sofronia </li>
+            <li id="id_player_2"> Pycachu </li>
+        </ul>
+    </div>
+
+    <div class="player-num">
+        {{usercount}} 1 / 6
+    </div>
+
+    <div class="player-joined">
+        {{username}} Pycachu Joined
+    </div>
+
+    <div>
+        <button class="start_game_btn" id="id_start_game_button"> Start </button>
+        <span id="error" class="error"></span>
+    </div>
+
+</section>
+
+{% endblock %}

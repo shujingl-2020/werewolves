@@ -1,0 +1,14 @@
+{% extends "werewolves/base.html" %}
+
+{% block content %}
+<section>
+<div>
+    <label for="id_username_input" id="id_label_username"> Username </label>
+    <input type="text" class="username_input" id="id_username_input"><br>
+</div>
+<div>
+    <button class="join_game_btn" id="id_join_game_button">Join Game</button>
+    <span id="error" class="error"></span>
+</div>
+</section>
+{% endblock %}
