@@ -55,6 +55,16 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'webapps.urls'
 
+# Used by the @login_required decorator to redirect to the login action
+LOGIN_URL = '/werewolves/login'
+
+# Default URL to redirect to after a user logs in.
+# Some authentication packages will use this.  Today's example does not.
+# Django offers a build-in login function which would use this
+# The OAuth example will use this
+LOGIN_REDIRECT_URL = '/werewolves/'
+
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
