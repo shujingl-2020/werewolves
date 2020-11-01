@@ -12,8 +12,10 @@ https://docs.djangoproject.com/en/3.1/ref/settings/
 
 from pathlib import Path
 
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
 
 
 # Quick-start development settings - unsuitable for production
@@ -27,17 +29,18 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
-
+# mysite/settings.py
 # Application definition
 
 INSTALLED_APPS = [
+    'channels',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'werewolves'
+    'werewolves',
 ]
 
 MIDDLEWARE = [
@@ -51,6 +54,16 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'webapps.urls'
+
+# Used by the @login_required decorator to redirect to the login action
+LOGIN_URL = '/werewolves/login'
+
+# Default URL to redirect to after a user logs in.
+# Some authentication packages will use this.  Today's example does not.
+# Django offers a build-in login function which would use this
+# The OAuth example will use this
+LOGIN_REDIRECT_URL = '/werewolves/'
+
 
 TEMPLATES = [
     {
@@ -100,6 +113,9 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+# mysite/settings.py
+# Channels
+ASGI_APPLICATION = 'webapps.asgi.application'
 
 # Internationalization
 # https://docs.djangoproject.com/en/3.1/topics/i18n/
