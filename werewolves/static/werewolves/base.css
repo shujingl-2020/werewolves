@@ -16,6 +16,10 @@
     text-align: center;
 }
 
+hr.rounded {
+  border-top: 8px solid #bbb;
+  border-radius: 5px;
+}
 
 .username_input {
    width: 200px;
