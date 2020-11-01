@@ -1,8 +1,8 @@
 {% extends "werewolves/base.html" %}
 
 {% block content %}
-
 <section>
+    <a href="{% url 'login' %}" class="log-out" id="id_nav_logout">Logout</a>
     <div class="players">
         Players: <br>
         <ul class="player-list" id="id_player_list">
@@ -20,7 +20,7 @@
     </div>
 
     <div>
-        <button class="start_game_btn" id="id_start_game_button"> Start </button>
+        <button class="btn" id="id_start_game_button"> Start </button>
         <span id="error" class="error"></span>
     </div>
 

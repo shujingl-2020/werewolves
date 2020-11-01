@@ -4,10 +4,18 @@
 <div id="login_page">
     <form method="post" action="{% url 'login' %}">
         <table>
-            {{form}}
+            <tr>
+                <th><label for="id_username" class="labels">Username:</label></th>
+                <td><input type="text" name="username" maxlength="20" required id="id_username" class="fields"></td>
+            </tr>
+            <tr>
+                <th><label for="id_password" class="labels">Password:</label></th>
+                <td><input type="password" name="password" maxlength="200" required id="id_password" class="fields">
+                </td>
+            </tr>
         </table>
         {% csrf_token %}
-        <button type="submit" id="id_login_button"> Log In </button>
+        <button type="submit" class="buttons" id="id_login_button">Log In</button>
     </form>
 
     <div>

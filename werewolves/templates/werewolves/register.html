@@ -7,8 +7,8 @@
         <table class="table-content">
             {% for field in form.visible_fields %}
             <tr>
-                <td>{{field.label_tag}}</td>
-                <td>{{field}}</td>
+                <td class="label">{{field.label_tag}}</td>
+                <td class="fields">{{field}}</td>
                 <td class="errorlist">
                     {% for error in field.errors %} {{error}} {% endfor %}
                 </td>
@@ -16,7 +16,7 @@
             {% endfor %}
         </table>
         {% csrf_token %}
-        <button type="submit" id="id_register_button">Register</button>
+        <button type="submit" class="btn" id="id_register_button">Register</button>
     </form>
 
     <div>
