@@ -5,7 +5,7 @@ from enum import Enum
 class PlayerRole(Enum):
     VILLAGER = "VILLAGER"
     WOLF     = "WOLF"
-    WITCH    = "WITCH"
+    SEER     = "SEER"
     GUARD    = "GUARD"
     NONE     = "NOT ASSIGNED"
 
@@ -28,8 +28,6 @@ class Player(models.Model):
     username = models.CharField(max_length=30)
     role     = models.CharField(max_length=30, choices=PlayerRole.choices())
     status   = models.CharField(max_length=30, choices=PlayerStatus.choices())
-    skill1   = models.CharField(max_length=30, null=True)
-    skill2   = models.CharField(max_length=30, null=True)
     vote     = models.ForeignKey('self', on_delete=models.CASCADE)
     # TODO: Tentative field, indicate whether a player is making a speech or not
     speech   = models.BooleanField(default=False)
@@ -45,11 +43,11 @@ class GameStatus(models.Model):
     # Indicates whether it is time for a character to use skill.
     # null means the player who got assigned the character is out.
     wolves          = models.ForeignKey(Player, on_delete=models.PROTECT, related_name="is_wolf", null=True)
-    witch           = models.ForeignKey(Player, on_delete=models.PROTECT, related_name="is_witch", null=True)
+    seer            = models.ForeignKey(Player, on_delete=models.PROTECT, related_name="is_seer", null=True)
     guard           = models.ForeignKey(Player, on_delete=models.PROTECT, related_name="is_guard", null=True)
     villagers       = models.ForeignKey(Player, on_delete=models.PROTECT, related_name="is_villager", null=True)
     # Booleans indicating whose turn this is at night (tentative).
     wolves_turn     = models.BooleanField(default=False)
-    witch_turn      = models.BooleanField(default=False)
+    seer_turn       = models.BooleanField(default=False)
     guard_turn      = models.BooleanField(default=False)
 
