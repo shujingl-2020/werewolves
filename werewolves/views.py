@@ -4,4 +4,4 @@ from django.shortcuts import render
 def home_action(request):
     if request.method == 'GET':
         context = {}
-        return render(request, 'werewolves/game.html', context)
+        return render(request, 'werewolves/username.html', context)
