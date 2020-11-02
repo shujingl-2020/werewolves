@@ -105,9 +105,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-# mysite/settings.py
-# Channels
-#ASGI_APPLICATION = 'webapps.asgi.application'
 
 
 # Internationalization
@@ -129,6 +126,7 @@ USE_TZ = True
 STATIC_URL = '/static/'
 
 # Channels
+#ASGI_APPLICATION = 'webapps.asgi.application'
 ASGI_APPLICATION = 'webapps.asgi.application'
 CHANNEL_LAYERS = {
     'default': {
