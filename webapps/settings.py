@@ -26,8 +26,6 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
-# mysite/settings.py
-# Application definition
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -109,7 +107,8 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # mysite/settings.py
 # Channels
-ASGI_APPLICATION = 'webapps.asgi.application'
+#ASGI_APPLICATION = 'webapps.asgi.application'
+
 
 # Internationalization
 # https://docs.djangoproject.com/en/3.1/topics/i18n/
@@ -128,3 +127,6 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 
 STATIC_URL = '/static/'
+
+# Channels
+ASGI_APPLICATION = 'webapps.asgi.application'

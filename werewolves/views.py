@@ -40,6 +40,7 @@ def login_action(request):
                             password=form.cleaned_data['password'])
 
     login(request, new_user)
+    return redirect(reverse('start-game'))
     return redirect(reverse('home'))
 
 

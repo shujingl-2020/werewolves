@@ -23,38 +23,37 @@ function displayError(message) {
     $("#error").html(message);
 }
 
-/*
-const roomName = JSON.parse(document.getElementById('room-name').textContent);
-
-const chatSocket = new WebSocket(
-    'ws://'
-    + window.location.host
-    + '/ws/chat/'
-    + roomName
-    + '/'
+//var user_id = {{ User_ID }};
+var chatSocket = new WebSocket(
+    'ws://' +
+    window.location.host +
+    '/ws/chat/' //+ user_id + '/'
 );
 
 chatSocket.onmessage = function(e) {
-    const data = JSON.parse(e.data);
-    document.querySelector('#chat-log').value += (data.message + '\n');
+    var data = JSON.parse(e.data);
+    var message = data['message'];
+    message = santinize(message);
+    document.querySelector('#message').value += (message + '\n');
 };
 
 chatSocket.onclose = function(e) {
     console.error('Chat socket closed unexpectedly');
 };
 
-document.querySelector('#chat-message-input').focus();
-document.querySelector('#chat-message-input').onkeyup = function(e) {
-    if (e.keyCode === 13) {  // enter, return
-        document.querySelector('#chat-message-submit').click();
-    }
-};
-
-document.querySelector('#chat-message-submit').onclick = function(e) {
-    const messageInputDom = document.querySelector('#chat-message-input');
-    const message = messageInputDom.value;
+//document.querySelector('#msg_input').focus();
+//document.querySelector('#msg_input').onkeyup = function(e) {
+//    if (e.keyCode === 13) {  // enter, return
+//        document.querySelector('#msg_send_btn').click();
+//    }
+//};
+document.querySelector('#msg_send_btn').onclick = function(e) {
+    var messageInputDom = document.querySelector('#msg_input');
+    var message = messageInputDom.value;
+    message = santinize(message);
     chatSocket.send(JSON.stringify({
         'message': message
     }));
+
     messageInputDom.value = '';
-};*/
+};
