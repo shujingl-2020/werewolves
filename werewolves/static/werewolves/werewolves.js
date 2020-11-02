@@ -41,7 +41,7 @@ chatSocket.onmessage = function(e) {
 chatSocket.onclose = function(e) {
     console.error('Chat socket closed unexpectedly');
 };
-/*
+
 document.querySelector('#message_input').focus();
 document.querySelector('#message_input').onkeyup = function(e) {
     if (e.keyCode === 13) {  // enter, return
@@ -57,4 +57,4 @@ document.querySelector('#message_button').onclick = function(e) {
     }));
 
     messageInputDom.value = '';
-};*/
+};

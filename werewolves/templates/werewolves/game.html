@@ -86,25 +86,5 @@
     </div>
 </div>
 
-<script>
-  document.querySelector('#message_input').focus();
-  document.querySelector('#message_input').onkeyup = function(e) {
-    if (e.keyCode === 13) {  // enter, return
-        document.querySelector('#message_button').click();
-    }
-  };
-  document.querySelector('#message_button').onclick = function(e) {
-    var messageInputDom = document.querySelector('#message_input');
-    var message = messageInputDom.value;
-    message = santinize(message);
-    chatSocket.send(JSON.stringify({
-        'message': message
-    }));
-
-    messageInputDom.value = '';
-  };
-</script>
-
-
 {% endblock %}
 
