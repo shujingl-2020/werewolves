@@ -12,7 +12,7 @@
             </div>
         </div>
         <div class="chat col-md-4">
-             <div class="msg_history">
+            <div class="msg_history">
             <div class="incoming_msg">
               <div class="incoming_msg_img"> <img src="https://ptetutorials.com/images/user-profile.png" alt="sunil"> </div>
               <div class="received_msg">
@@ -54,12 +54,18 @@
           </div>
           <div class="type_msg">
             <div class="input_msg_write">
-              <input type="text" class="write_msg" placeholder="Type a message" />
-              <button class="msg_send_btn" type="button"><i class="fa fa-paper-plane-o" aria-hidden="true"></i></button>
+              <input type="text" id="msg_input" class="write_msg" placeholder="Type a message" />
+              <button class="msg_send_btn" id="msg_send_btn" type="button"><i class="fa fa-paper-plane-o" aria-hidden="true"></i></button>
             </div>
           </div>
         </div>
         </div>
     </div>
 </div>
+<!--
+<script>
+  var user_id = {{ User_ID }};
+</script>
+-->
+
 {% endblock %}

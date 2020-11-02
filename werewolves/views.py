@@ -16,6 +16,10 @@ def home_action(request):
         context = {}
         return render(request, 'werewolves/waitingroom.html', context)
 
+def start_game(request):
+    if request.method == 'GET':
+        #context = {'User_ID': request.user.id}
+        return render(request, 'werewolves/game.html', {'User_ID': request.user.id})
 
 def login_action(request):
     context = {}
@@ -37,6 +41,7 @@ def login_action(request):
                             password=form.cleaned_data['password'])
 
     login(request, new_user)
+    return redirect(reverse('start-game'))
     return redirect(reverse('home'))
 
 
