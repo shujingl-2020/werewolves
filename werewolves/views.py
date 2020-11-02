@@ -16,10 +16,9 @@ def home_action(request):
         context = {}
         return render(request, 'werewolves/waitingroom.html', context)
 
-def start_game(request):
-    if request.method == 'GET':
-        #context = {'User_ID': request.user.id}
-        return render(request, 'werewolves/game.html', {'User_ID': request.user.id})
+def start_game_action(request):
+        context = {}
+        return render(request, 'werewolves/game.html', context)
 
 def login_action(request):
     context = {}

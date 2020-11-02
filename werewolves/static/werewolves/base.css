@@ -11,11 +11,11 @@
     margin-right: auto;
     margin-top: 0px;
     margin-bottom: 50px;
-    width: 70%;
+    width: 80%;
     font-family: "Comic Sans MS", cursive, sans-serif;
     font-size: x-large;
-    padding: 25px 50px;
     text-align: center;
+    padding-bottom: 10px;
 }
 
 hr {
@@ -64,9 +64,8 @@ table {
     position: absolute;
     top: 30px;
     right: 100px;
-    font-size: 20px;
+    font-size: 18px;
 }
-
 
 .players {
    padding-top:25px;
@@ -77,7 +76,6 @@ table {
 
 }
 
-
 .player-list{
  list-style-type: none;
 }
@@ -86,4 +84,59 @@ table {
    margin-top: 150px;
 }
 
+/*game page*/
 
+
+img {
+  width: 100px;
+  height: 100px;
+}
+
+.row {
+   margin-left: 0px !important;
+   margin-right: 0px !important;
+   margin-bottom: 50px;
+}
+
+#chatbox {
+    text-align:left;
+    margin-top: 20px;
+    margin-bottom:0px;
+    padding:10px;
+    background:#fff;
+    height:400px;
+    width:300px;
+    border:2px solid;
+    overflow:auto;
+}
+
+#message_input {
+   width: 250px;
+   height: 30px;
+   border: 1px solid black;
+   box-sizing: border-box ;
+   border-radius: 4px;
+   margin: 10px 10px;
+   font-size:large;
+}
+
+#message_button {
+  width: 60px;
+  margin-top: 10px;
+  border-radius: 8px;
+  padding: 5px 5px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 15px;
+}
+
+#game_chat_title {
+  margin-right: 2px;
+  text-align: center;
+}
+
+.username {
+  font-size: 15px;
+
+}
