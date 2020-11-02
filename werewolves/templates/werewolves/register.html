@@ -5,18 +5,42 @@
 
     <form method="post" action="{% url 'register' %}">
         <table class="table-content">
-            {% for field in form.visible_fields %}
             <tr>
-                <td>{{field.label_tag}}</td>
-                <td>{{field}}</td>
+                <td class="labels"><label for="id_username">Username:</label></td>
+                <td><input type="text" name="username" maxlength="20" class="fields" required id="id_username"></td>
                 <td class="errorlist">
-                    {% for error in field.errors %} {{error}} {% endfor %}
+
                 </td>
             </tr>
-            {% endfor %}
+
+            <tr>
+                <td class="labels"><label for="id_email">Email:</label></td>
+                <td><input type="email" name="email" maxlength="50" class="fields" required id="id_email"></td>
+                <td class="errorlist">
+
+                </td>
+            </tr>
+
+            <tr>
+                <td class="labels"><label for="id_password">Password:</label></td>
+                <td><input type="password" name="password" class="fields" maxlength="200" required id="id_password">
+                </td>
+                <td class="errorlist">
+
+                </td>
+            </tr>
+
+            <tr>
+                <td class="labels"><label for="id_confirm_password">Confirm password:</label></td>
+                <td><input type="password" name="confirm_password" maxlength="200" class="fields" required
+                                          id="id_confirm_password"></td>
+                <td class="errorlist">
+
+                </td>
+            </tr>
         </table>
         {% csrf_token %}
-        <button type="submit" id="id_register_button">Register</button>
+        <button type="submit" class="buttons" id="id_register_button">Register</button>
     </form>
 
     <div>

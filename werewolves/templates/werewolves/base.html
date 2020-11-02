@@ -13,17 +13,11 @@
 
 <div class="big-heading">
     <span id="id_name_of_site"> WereWolves </span>
-    <hr class="rounded">
-</div>
-
-<!--may add nav bar function later -->
-<div class="navbar">
-    {% block nav-bar %}
-    {% endblock %}
+    <hr/>
 </div>
 
 {% if message %}
-<div class="message">
+<div class="message" id="message">
     {{message}}
 </div>
 {% endif %}

@@ -1,33 +1,29 @@
 {% extends "werewolves/base.html" %}
 
 {% block content %}
+<a href="{% url 'login' %}" class="log-out" id="id_logout">Exit the Game</a>
+<div class="players">
+    <div class="players_label"> Players: </div><br>
+    <ul class="player-list" id="id_player_list">
+        <li id="id_player_1"> Sofronia</li>
+        <li id="id_player_2"> Pycachu</li>
+    </ul>
+</div>
 
-<section>
-    <div class="players">
-        Players: <br>
-        <ul class="player-list" id="id_player_list">
-            <li id="id_player_1"> Sofronia </li>
-            <li id="id_player_2"> Pycachu </li>
-        </ul>
-    </div>
+<div class="player-num">
+    {{usercount}} 1 / 6
+</div>
 
-    <div class="player-num">
-        {{usercount}} 1 / 6
-    </div>
+<div class="player-joined">
+    {{username}} Pycachu Joined
+</div>
 
-    <div class="player-joined">
-        {{username}} Pycachu Joined
-    </div>
-
-    <div>
-        <button class="start_game_btn" id="id_start_game_button" onclick="joinGame()"> Start </button>
-        <span id="error" class="error"></span>
-    </div>
-
-    <div>
-        <button class="exit_game_btn" id="id_exit_game_button" onclick="exitGame()"> Exit </button>
-        <span id="error" class="error"></span>
-    </div>
+<div>
+    <form method="get" action="{% url 'game' %}">
+    <button class="buttons" id="id_start_game_button" onclick="joinGame()" disabled> Start</button>
+    <span id="error" class="error"></span>
+    </form>
+</div>
 
 </section>
 

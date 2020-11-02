@@ -1,65 +1,110 @@
 {% extends "werewolves/base.html" %}
+{% load static %}
 
 {% block content %}
 <div class="container">
-    <div class="row">
-        <div class="game col-md-8">
-            <div class="centered">
-                <h2>For displaying players</h2>
-                <p>Draw the canvas!</p>
-                {% load static %}
-                <img src="{% static "werewolves/cards.jpg" %}">
+    <div class="row" id="canvas">
+        <div class="col-md-12 col-lg-12">
+            <div class="game col-md-8 col-lg-8">
+                <div class="row justify-content-center" id="avatars_row_1">
+                    <div class="col-md-3 col-lg-3">
+                    </div>
+                    <div class="col-md-3 col-lg-3">
+                        <a href="#" id="player_1">
+                            <img src="{% static "werewolves/goodavatar.png" %}">
+                        </a>
+                        <div class="username"> {{number}}{{username}} 1 Sofronia </div>
+                    </div>
+                    <div class="col-md-2 col-lg-2">
+                    </div>
+                </div>
+                <div class="row justify-content-center" id="avatars_row_2">
+                    <div class="col-md-1 col-lg-1">
+                        <a href="#" id="player_2">
+                            <img src="{% static "werewolves/goodavatar.png" %}">
+                        </a>
+                        <div class="username"> {{number}}{{username}} 2 xxx </div>
+                    </div>
+                    <div class="col-md-6 col-lg-6">
+                    </div>
+                    <div class="col-md-1 col-lg-1">
+                        <a href="#" id="player_6">
+                            <img src="{% static "werewolves/badavatar.png" %}">
+                        </a>
+                         <div class="username"> {{number}}{{username}} 6 xxx </div>
+                    </div>
+                </div>
+                <div class="row justify-content-center" id="avatars_row_3">
+                    <div class="col-md-1 col-lg-1">
+                        <a href="#" id="player_3">
+                            <img src="{% static "werewolves/badavatar.png" %}">
+                        </a>
+                         <div class="username"> {{number}}{{username}} 3 xxx </div>
+                    </div>
+                    <div class="col-md-6 col-lg-6">
+                    </div>
+                    <div class="col-md-1 col-lg-1">
+                        <a href="#" id="player_5">
+                            <img src="{% static "werewolves/goodavatar.png" %}">
+                        </a>
+                         <div class="username"> {{number}}{{username}} 5 xxx </div>
+                    </div>
+                </div>
+                <div class="row justify-content-center" id=" avatars_row_4">
+                    <div class="col-md-3 col-lg-3">
+                    </div>
+                    <div class="col-md-3 col-lg-3">
+                        <a href="#" id="player_4">
+                            <img src="{% static "werewolves/goodavatar.png" %}">
+                        </a>
+                         <div class="username"> {{number}}{{username}} 4 xxx </div>
+                    </div>
+                    <div class="col-md-2 col-lg-2">
+                    </div>
+                </div>
+                <div class="row justify-content-center" id="identity">
+                    Your identity is: Werewolf {{identity}}
+                </div>
             </div>
-        </div>
-        <div class="chat col-md-4">
-             <div class="msg_history">
-            <div class="incoming_msg">
-              <div class="incoming_msg_img"> <img src="https://ptetutorials.com/images/user-profile.png" alt="sunil"> </div>
-              <div class="received_msg">
-                <div class="received_withd_msg">
-                  <p>Test which is a new approach to have all
-                    solutions</p>
-                  <span class="time_date"> 11:01 AM    |    June 9</span></div>
-              </div>
+            <div class="chat col-md-4 col-lg-4">
+                <div id="game_chat_title">
+                        Game Chat
+                </div>
+                <div class="row justify-content-center">
+                    <div class="col-md-4 col-lg-4">
+                        <div id="chatbox"></div>
+                    </div>
+                </div>
+                <div class="row justify-content-left">
+                    <form name="message" action="">
+                        <input type="text" id="message_input"/>
+                        <input class="buttons" type="submit" id="message_button" value="Send"/>
+                    </form>
+                </div>
             </div>
-            <div class="outgoing_msg">
-              <div class="sent_msg">
-                <p>Test which is a new approach to have all
-                  solutions</p>
-                <span class="time_date"> 11:01 AM    |    June 9</span> </div>
-            </div>
-            <div class="incoming_msg">
-              <div class="incoming_msg_img"> <img src="https://ptetutorials.com/images/user-profile.png" alt="sunil"> </div>
-              <div class="received_msg">
-                <div class="received_withd_msg">
-                  <p>Test, which is a new approach to have</p>
-                  <span class="time_date"> 11:01 AM    |    Yesterday</span></div>
-              </div>
-            </div>
-            <div class="outgoing_msg">
-              <div class="sent_msg">
-                <p>Apollo University, Delhi, India Test</p>
-                <span class="time_date"> 11:01 AM    |    Today</span> </div>
-            </div>
-            <div class="incoming_msg">
-              <div class="incoming_msg_img"> <img src="https://ptetutorials.com/images/user-profile.png" alt="sunil"> </div>
-              <div class="received_msg">
-                <div class="received_withd_msg">
-                  <p>We work directly with our designers and suppliers,
-                    and sell direct to you, which means quality, exclusive
-                    products, at a price anyone can afford.</p>
-                  <span class="time_date"> 11:01 AM    |    Today</span></div>
-              </div>
-            </div>
-          </div>
-          <div class="type_msg">
-            <div class="input_msg_write">
-              <input type="text" class="write_msg" placeholder="Type a message" />
-              <button class="msg_send_btn" type="button"><i class="fa fa-paper-plane-o" aria-hidden="true"></i></button>
-            </div>
-          </div>
-        </div>
         </div>
     </div>
 </div>
+
+<script>
+  document.querySelector('#message_input').focus();
+  document.querySelector('#message_input').onkeyup = function(e) {
+    if (e.keyCode === 13) {  // enter, return
+        document.querySelector('#message_button').click();
+    }
+  };
+  document.querySelector('#message_button').onclick = function(e) {
+    var messageInputDom = document.querySelector('#message_input');
+    var message = messageInputDom.value;
+    message = santinize(message);
+    chatSocket.send(JSON.stringify({
+        'message': message
+    }));
+
+    messageInputDom.value = '';
+  };
+</script>
+
+
 {% endblock %}
+
