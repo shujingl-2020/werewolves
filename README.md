@@ -24,6 +24,8 @@ $ docker run -p 6379:6379 -d redis:5
 To run example code mysite (Django version 3.1.3, ASGI/Channels version 2.4.0)
 $ python -m pip install -U --use-feature=2020-resolver channels-redis==2.4.2
 
+URL for mysite: 127.0.0.1:8000/chat/
+
 ****************************************************************
 
 Errors handling:
