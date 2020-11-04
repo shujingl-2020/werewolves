@@ -12,13 +12,16 @@ Setup:(Django version 3.1.3, ASGI/Channels version 3.0.0)
 $ python -m pip install -U --use-feature=2020-resolver channels
 $ python -m pip install -U --use-feature=2020-resolver redis-server
 $ python -m pip install -U --use-feature=2020-resolver channels-redis
+
+install docker-desktop(for mac)
+open docker-desktop and keep it running
+$ docker run -p 6379:6379 -d redis:5
+
 //if there is error
 $ python -m pip install -U --use-feature=2020-resolver django
 $ python -m pip install -U --use-feature=2020-resolver daphne
 //if there is error
-install docker-desktop(for mac)
-open docker-desktop and keep it running
-$ docker run -p 6379:6379 -d redis:5
+
 
 
 To run example code mysite (Django version 3.1.3, ASGI/Channels version 2.4.0)

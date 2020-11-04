@@ -24,13 +24,12 @@ function displayError(message) {
 }
 
 
-
 //var user_id = {{ User_ID }};
-var user_id = 1;
+//var user_id = 1;
 var chatSocket = new WebSocket(
     'ws://' +
     window.location.host +
-    '/ws/chat/' + user_id + '/'
+    '/ws/chat/' //+ user_id + '/'
 )
 
 chatSocket.onmessage = function(e) {
@@ -51,10 +50,11 @@ function sendMessage() {
     //var messageInputDom = document.getElementById('message_input');
     //var message = messageInputDom.value
     message = sanitize(message)
-    console.log('message_onlick: ', message)
+    //console.log('message_onlick: ', message)
     chatSocket.send(JSON.stringify({
         'message': message
     }))
+    //console.log('message_onlick: ', message)
     messageInputDom.value = '';
 }
 
