@@ -1,3 +1,30 @@
+/**
+ * create a new WebSocket with a certain websocket URL
+ */
+var chatSocket = new WebSocket(
+    'ws://' +
+    window.location.host +
+    '/ws/chat/' //+ user_id + '/'
+)
+/**
+ * when websocket receive message, call addMessage
+ */
+chatSocket.onmessage = function(e) {
+    var data = JSON.parse(e.data)
+    var message = data['message']
+    message = sanitize(message)
+    addMessage(message)
+}
+/**
+ * when websocket closed unexpectedly, print error message
+ */
+chatSocket.onclose = function(e) {
+    console.error('Chat socket closed unexpectedly')
+}
+
+/**
+ * sanitize input text
+ */ 
 function sanitize(s) {
     // Be sure to replace ampersand first
     return s.replace(/&/g, '&amp;')
@@ -5,6 +32,33 @@ function sanitize(s) {
             .replace(/>/g, '&gt;')
             .replace(/"/g, '&quot;')
 }
+
+/**
+ * send a message from websocket
+ */
+function sendMessage() {
+    var messageInputDom = document.querySelector('#message_input');
+    var message = messageInputDom.value;
+    message = sanitize(message)
+    /* send from websocket */
+    chatSocket.send(JSON.stringify({
+        'message': message
+    }))
+    messageInputDom.value = '';
+}
+/**
+ * add the new message at the bottom of the chat box
+ * need future update
+ * @param message: the message to add to the chatbox 
+ */
+function addMessage(message) {
+    let list = document.getElementById("chatbox")
+    let message_element = document.createElement("div")
+    message_element.innerHTML = message
+    list.appendChild(message_element)
+}
+
+
 function getCSRFToken() {
     let cookies = document.cookie.split(";")
     for (let i = 0; i < cookies.length; i++) {
@@ -20,40 +74,5 @@ function updateError(xhr, status, error) {
 }
 
 function displayError(message) {
-    $("#error").html(message);
+    $("#error").html(message)
 }
-
-//var user_id = {{ User_ID }};
-var chatSocket = new WebSocket(
-    'ws://' +
-    window.location.host +
-    '/ws/chat/' //+ user_id + '/'
-);
-
-chatSocket.onmessage = function(e) {
-    var data = JSON.parse(e.data);
-    var message = data['message'];
-    message = santinize(message);
-    document.querySelector('#message').value += (message + '\n');
-};
-
-chatSocket.onclose = function(e) {
-    console.error('Chat socket closed unexpectedly');
-};
-
-//document.querySelector('#msg_input').focus();
-//document.querySelector('#msg_input').onkeyup = function(e) {
-//    if (e.keyCode === 13) {  // enter, return
-//        document.querySelector('#msg_send_btn').click();
-//    }
-//};
-document.querySelector('#msg_send_btn').onclick = function(e) {
-    var messageInputDom = document.querySelector('#msg_input');
-    var message = messageInputDom.value;
-    message = santinize(message);
-    chatSocket.send(JSON.stringify({
-        'message': message
-    }));
-
-    messageInputDom.value = '';
-};

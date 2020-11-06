@@ -76,20 +76,14 @@
                     </div>
                 </div>
                 <div class="row justify-content-left">
-                    <form name="message" action="">
-                        <input type="text" id="message_input"/>
-                        <input class="buttons" type="submit" id="message_button" value="Send"/>
-                    </form>
+                    <input type="text" id="message_input"/>
+                    <button class="buttons" id="message_button" onclick="sendMessage()">Send</button>
                 </div>
             </div>
         </div>
     </div>
 </div>
-<!--
-<script>
-  var user_id = {{ User_ID }};
-</script>
--->
+
 
 {% endblock %}
 
