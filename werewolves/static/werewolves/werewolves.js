@@ -4,17 +4,48 @@
 var chatSocket = new WebSocket(
     'ws://' +
     window.location.host +
-    '/ws/chat/' //+ user_id + '/'
+    '/ws/chat/'
 )
 /**
  * when websocket receive message, call addMessage
  */
 chatSocket.onmessage = function(e) {
+    console.log('in onmessage')
     var data = JSON.parse(e.data)
-    var message = data['message']
-    message = sanitize(message)
-    addMessage(message)
+    let message_type = data['message-type']
+    let message = data['message']
+    console.log(message_type)
+    if (message_type === 'chat_message') {
+        message = sanitize(message)
+        addMessage(message)
+    } else if (message_type === 'players_message') {
+        // Update number of players on the page
+        let num_players = data['message']
+        let player_count = document.getElementById('id_player_num')
+        player_count.innerHTML = message + ' / 6'
+
+        // Update list of player names on the page
+        let player_name = data['username']
+        let player_list = document.getElementById('id_player_list')
+        player_list.innerHTML += player_name
+        
+        // TODO: Change later to == 6
+        if (num_players > 0) {
+            let startButton = document.getElementById('id_start_game_button')
+            startButton.disabled = false
+        }
+    }
 }
+
+function sendJoin() {
+    if (chatSocket.readyState === 1) {
+        chatSocket.send(JSON.stringify({
+            'type': 'join-message',
+            'message': 'Join',
+        }))
+    }
+}
+
 /**
  * when websocket closed unexpectedly, print error message
  */
@@ -42,6 +73,7 @@ function sendMessage() {
     message = sanitize(message)
     /* send from websocket */
     chatSocket.send(JSON.stringify({
+        'type': 'chat-message',
         'message': message
     }))
     messageInputDom.value = '';
@@ -59,20 +91,20 @@ function addMessage(message) {
 }
 
 
-function getCSRFToken() {
-    let cookies = document.cookie.split(";")
-    for (let i = 0; i < cookies.length; i++) {
-        let c = cookies[i].trim()
-        if (c.startsWith("csrftoken=")) {
-            return c.substring("csrftoken=".length, c.length)
-        }
-    }
-    return "unknown";
-}
-function updateError(xhr, status, error) {
-    displayError('Status=' + xhr.status + ' (' + error + ')')
-}
+// function getCSRFToken() {
+//     let cookies = document.cookie.split(";")
+//     for (let i = 0; i < cookies.length; i++) {
+//         let c = cookies[i].trim()
+//         if (c.startsWith("csrftoken=")) {
+//             return c.substring("csrftoken=".length, c.length)
+//         }
+//     }
+//     return "unknown";
+// }
+// function updateError(xhr, status, error) {
+//     displayError('Status=' + xhr.status + ' (' + error + ')')
+// }
 
-function displayError(message) {
-    $("#error").html(message)
-}
+// function displayError(message) {
+//     $("#error").html(message)
+// }

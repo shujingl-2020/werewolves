@@ -17,8 +17,8 @@ def home_action(request):
         return render(request, 'werewolves/waitingroom.html', context)
 
 def start_game_action(request):
-        context = {}
-        return render(request, 'werewolves/game.html', context)
+    context = {}
+    return render(request, 'werewolves/game.html', context)
 
 def login_action(request):
     context = {}

@@ -1,4 +1,5 @@
 from django.db import models
+from django.contrib.auth.models import User
 from enum import Enum
 
 # A Player can have four different roles, plus one unassigned:
@@ -25,10 +26,10 @@ class PlayerStatus(Enum):
 # The Player model keeps track of the player's username and role.
 class Player(models.Model):
     # Username must be shorter than 30 characters.
-    username = models.CharField(max_length=30)
-    role     = models.CharField(max_length=30, choices=PlayerRole.choices())
-    status   = models.CharField(max_length=30, choices=PlayerStatus.choices())
-    vote     = models.ForeignKey('self', on_delete=models.CASCADE)
+    user     = models.ForeignKey(User, on_delete=models.PROTECT, related_name="player", null=True)
+    role     = models.CharField(max_length=30, choices=PlayerRole.choices(), default=PlayerRole.NONE)
+    status   = models.CharField(max_length=30, choices=PlayerStatus.choices(), default=PlayerStatus.ALIVE)
+    vote     = models.ForeignKey('self', on_delete=models.CASCADE, related_name='voted', null=True)
     # TODO: Tentative field, indicate whether a player is making a speech or not
     speech   = models.BooleanField(default=False)
 
@@ -40,7 +41,6 @@ class GameStatus(models.Model):
     night           = models.BooleanField(default=False) 
     # Target player's id, null means the wolves haven't decided yet.
     target          = models.IntegerField(null=True)
-    # Indicates whether it is time for a character to use skill.
     # null means the player who got assigned the character is out.
     wolves          = models.ForeignKey(Player, on_delete=models.PROTECT, related_name="is_wolf", null=True)
     seer            = models.ForeignKey(Player, on_delete=models.PROTECT, related_name="is_seer", null=True)
@@ -50,4 +50,7 @@ class GameStatus(models.Model):
     wolves_turn     = models.BooleanField(default=False)
     seer_turn       = models.BooleanField(default=False)
     guard_turn      = models.BooleanField(default=False)
+    # Indicate which speaker is the first speaker and which is the current speaker
+    first_speaker   = models.ForeignKey(Player, on_delete=models.PROTECT, related_name="is_first_speaker", null=True)
+    current_speaker = models.ForeignKey(Player, on_delete=models.PROTECT, related_name="is_current_speaker", null=True)
 

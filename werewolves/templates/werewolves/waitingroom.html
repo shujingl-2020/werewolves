@@ -10,11 +10,11 @@
     </ul>
 </div>
 
-<div class="player-num">
-    {{usercount}} 1 / 6
+<div class="player-num" id="id_player_num">
+    1 / 6
 </div>
 
-<div class="player-joined">
+<div class="player-joined" id="id_player_list">
     {{username}} Pycachu Joined
 </div>
 
@@ -27,47 +27,8 @@
 
 </section>
 
-{% endblock %}
-
 <script>
-    const chatSocket = new WebSocket(
-        'ws://'
-        + window.location.host
-        + '/ws/werewolves/waiting-room'
-    );
-
-    chatSocket.onmessage = function (e) {
-        const data = JSON.parse(e.data);
-        if (data.message === 'Start Game') {
-            // render a view of the game
-        }
-    };
-
-    chatSocket.onclose = function (e) {
-        console.error('Chat socket closed unexpectedly');
-    };
-
-    document.querySelector('#chat-message-input').focus();
-    document.querySelector('#chat-message-input').onkeyup = function (e) {
-        if (e.keyCode === 13) {  // enter, return
-            document.querySelector('#chat-message-submit').click();
-        }
-    };
-
-    document.querySelector('#chat-message-submit').onclick = function (e) {
-        const messageInputDom = document.querySelector('#chat-message-input');
-        const message = messageInputDom.value;
-        chatSocket.send(JSON.stringify({
-            'message': message
-        }));
-        messageInputDom.value = '';
-    };
-
-    function joinGame() {
-
-    }
-
-    function exitGame() {
-        
-    }
+    window.setTimeout(sendJoin, 5000)
 </script>
+
+{% endblock %}
