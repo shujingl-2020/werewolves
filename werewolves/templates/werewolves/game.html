@@ -66,19 +66,20 @@
                     Your identity is: Werewolf {{identity}}
                 </div>
             </div>
-            <div class="chat col-md-4 col-lg-4">
-                <div id="game_chat_title">
+            <div class="chat col-md-4 col-lg-4 d-flex flex-column justify-content-between">
+                <div class="col" id="game_chat_title">
                         Game Chat
                 </div>
-                <div class="row justify-content-center">
-                    <div class="col-md-4 col-lg-4">
+                <div class="col">
                         <div id="chatbox"></div>
-                    </div>
                 </div>
-                <div class="row justify-content-left">
+                <div class="col">
                     <input type="text" id="message_input"/>
+                </div>
+                <div class="col">
                     <button class="buttons" id="message_button" onclick="sendMessage()">Send</button>
                 </div>
+            </div>
             </div>
         </div>
     </div>
