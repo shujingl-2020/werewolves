@@ -6,6 +6,22 @@
     padding: 15px 15px;
 }
 
+hr {
+  border-top: 10px solid #494946 !important;
+  border-radius: 5px !important;
+}
+
+.loginregister-link {
+   font-size: 18px;
+}
+
+#id_logged_in_username {
+  float: right;
+  margin-right: 100px;
+  margin-top: 20px;
+  font-size: x-large;
+}
+
 .content {
     margin-left: auto;
     margin-right: auto;
@@ -16,15 +32,6 @@
     font-size: x-large;
     text-align: center;
     padding-bottom: 10px;
-}
-
-hr {
-  border-top: 10px solid #494946 !important;
-  border-radius: 5px !important;
-}
-
-.loginregister-link {
-   font-size: 18px;
 }
 
 table {
@@ -106,7 +113,7 @@ img {
     background:#fff;
     height:400px;
     width:300px;
-    border:2px solid;
+    border:2.5px solid;
     overflow:auto;
 }
 

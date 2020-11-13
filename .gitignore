@@ -2,6 +2,7 @@
 *.pot
 *.pyc
 local_settings.py
+get-pip.py
 
 # Django's SQL Lite Database File
 db.sqlite3
