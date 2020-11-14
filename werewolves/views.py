@@ -40,8 +40,7 @@ def login_action(request):
                             password=form.cleaned_data['password'])
 
     login(request, new_user)
-    
-    return redirect(reverse('game'))  # only for chat testing, can be deleted
+
     return redirect(reverse('home'))
 
 

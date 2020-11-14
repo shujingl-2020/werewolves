@@ -1,5 +1,9 @@
 {% extends "werewolves/base.html" %}
 
+{% block heading %}
+<span id="id_logged_in_username">{{user.username}}</span>
+{% endblock %}
+
 {% block content %}
 <a href="{% url 'login' %}" class="log-out" id="id_logout">Exit the Game</a>
 <div class="players">
@@ -14,8 +18,8 @@
     1 / 6
 </div>
 
-<div class="player-joined" id="id_player_list">
-    {{username}} Pycachu Joined
+<div class="player-joined" id="id_player_join">
+    Pycachu Joined
 </div>
 
 <div>

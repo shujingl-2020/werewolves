@@ -1,6 +1,11 @@
 {% extends "werewolves/base.html" %}
 {% load static %}
 
+{% block heading %}
+<span id="id_logged_in_username">{{user.username}}</span>
+{% endblock %}
+
+
 {% block content %}
 <div class="container">
     <div class="row" id="canvas">
@@ -71,7 +76,10 @@
                         Game Chat
                 </div>
                 <div class="col">
-                        <div id="chatbox"></div>
+                        <div id="chatbox">
+                            <ul id="chat-message-list" style="list-style-type:none">
+                            </ul>
+                        </div>
                 </div>
                 <div class="col">
                     <input type="text" id="message_input"/>

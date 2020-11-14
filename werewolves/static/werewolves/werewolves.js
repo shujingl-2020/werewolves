@@ -14,10 +14,11 @@ chatSocket.onmessage = function(e) {
     var data = JSON.parse(e.data)
     let message_type = data['message-type']
     let message = data['message']
+    let username = data['username']
     console.log(message_type)
     if (message_type === 'chat_message') {
         message = sanitize(message)
-        addMessage(message)
+        addMessage(message, username)
     } else if (message_type === 'players_message') {
         // Update number of players on the page
         let num_players = data['message']
@@ -83,11 +84,12 @@ function sendMessage() {
  * need future update
  * @param message: the message to add to the chatbox 
  */
-function addMessage(message) {
-    let list = document.getElementById("chatbox")
-    let message_element = document.createElement("div")
-    message_element.innerHTML = message
-    list.appendChild(message_element)
+function addMessage(message, username) {
+    // append a new messgae to the chat box
+    // TODO: add time and need to distinguish different groups
+    $("#chat-message-list").append (
+        '<li class="message">' + '<span class="chat-username">' + username + '</span>: ' + message + '</li>'
+    )
 }
 
 

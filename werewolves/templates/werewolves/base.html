@@ -4,6 +4,7 @@
     {% load static %}
     <link href="{% static 'werewolves/base.css' %}" rel="stylesheet" type="text/css">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    <link rel="shortcut icon" href="#" />
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script src="{% static 'werewolves/werewolves.js' %}" type="text/javascript"></script>
     <title> WereWolves </title>
@@ -13,7 +14,8 @@
 
 <div class="big-heading">
     <span id="id_name_of_site"> WereWolves </span>
-    <span id="id_logged_in_username">{{user.username}}</span>
+    {% block heading %}
+    {% endblock %}
     <hr/>
 </div>
 

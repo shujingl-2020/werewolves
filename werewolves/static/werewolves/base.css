@@ -69,7 +69,7 @@ table {
 .log-out {
     color: #00008B !important;
     position: absolute;
-    top: 30px;
+    top: 100px;
     right: 100px;
     font-size: 18px;
 }
@@ -109,12 +109,17 @@ img {
     text-align:left;
     margin-top: 20px;
     margin-bottom:0px;
-    padding:10px;
+    padding: 20px 20px 20px 20px;
     background:#fff;
     height:450px;
     width:480px;
     border:2.5px solid;
     overflow:auto;
+    font-size:large;
+}
+
+.chat-username {
+   color: #347174
 }
 
 #message_input {
