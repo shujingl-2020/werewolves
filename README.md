@@ -6,9 +6,28 @@ Create a recursive reference to itself in django models: https://docs.djangoproj
 Indicate a Django field is nullable: https://docs.djangoproject.com/en/3.1/ref/models/fields/#null  
 Put no limit on length of text in Django field: https://docs.djangoproject.com/en/3.1/ref/models/fields/#textfield  
 Django Channels Tutorial:https://channels.readthedocs.io/en/stable/tutorial/index.html
-
 ****************************************************************
-Setup:(Django version 3.1.3, ASGI/Channels version 3.0.0)
+Create a virtual environment and install django:
+• Choose a location in which to create the virtual environment. I call it “my_env”, though many
+people call it “venv”. If you put it anywhere in your repo, be sure to put the name of the
+virtual environment directory into your .gitignore
+
+$ python3 -m venv my_env
+$ source my_env/bin/activate
+$ my_env\Scripts\activate.bat
+$ pip install –U pip
+$ pip install django
+****************************************************************
+Channels Setup:(Django version 3.1.3, ASGI/Channels version 3.0.0)
+
+$ python -m pip install -U channels
+
+important!install the latest version of Channels
+$ git clone git@github.com:django/channels.git
+$ cd channels
+$ <activate your project’s virtual environment>
+(environment) $ pip install -e .  # the dot specifies the current repo
+
 $ python -m pip install -U --use-feature=2020-resolver channels
 $ python -m pip install -U --use-feature=2020-resolver redis-server
 $ python -m pip install -U --use-feature=2020-resolver channels-redis
@@ -21,8 +40,6 @@ $ docker run -p 6379:6379 -d redis:5
 $ python -m pip install -U --use-feature=2020-resolver django
 $ python -m pip install -U --use-feature=2020-resolver daphne
 //if there is error
-
-
 
 To run example code mysite (Django version 3.1.3, ASGI/Channels version 2.4.0)
 $ python -m pip install -U --use-feature=2020-resolver channels-redis==2.4.2
