@@ -47,6 +47,10 @@ $ python -m pip install -U --use-feature=2020-resolver channels-redis==2.4.2
 URL for mysite: 127.0.0.1:8000/chat/
 
 ****************************************************************
+Synchronize database:
+
+$ python manage.py migrate --run-syncdb
+****************************************************************
 
 Errors handling:
 install docker
