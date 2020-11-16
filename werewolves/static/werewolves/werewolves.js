@@ -108,12 +108,17 @@ function addMessage(message, username, id) {
     var hours   = date.getHours();
     var minutes = date.getMinutes();
     var seconds = date.getSeconds();
-    var timeString = "" + ((hours > 12) ? hours - 12 : hours);
+    var timeString = "" + hours;
     timeString  += ((minutes < 10) ? ":0" : ":") + minutes;
     timeString  += ((seconds < 10) ? ":0" : ":") + seconds;
+    if (message) {
     $("#chat-message-list").append (
-      '<li class="messages" id="message_' +  id + '">' + '<span class = "message-time" id="message_time_' + id + '"> [' + timeString + '] </span> <span class="chat-username">  ' + username + '</span>: <span class="message_text" id="message_text_' + id + '">' + message + '</span></li>'
+      '<li class="messages" id="message_' +  id + '">'
+      +'<span class = "message-time" id="message_time_' + id + '"> [' + timeString + '] </span>  '
+      +'<span class="chat-username">  ' + username + '</span>: '+
+      '<span class="message-text" id="message_text_' + id + '">' + message + '</span></li>'
      )
+     }
 }
 
 /**
@@ -121,10 +126,18 @@ function addMessage(message, username, id) {
  * @param message: the announcement
  */
 function addSystemMessage(message) {
+    var date = new Date;
+    var hours   = date.getHours();
+    var minutes = date.getMinutes();
+    var seconds = date.getSeconds();
+    var timeString = "" + hours;
+    timeString  += ((minutes < 10) ? ":0" : ":") + minutes;
+    timeString  += ((seconds < 10) ? ":0" : ":") + seconds;
     if (message) {
         $("#chat-message-list").append (
-            '<li class="message">' + 
-            '<span>' + "system: " + message + '</span>' + 
+            '<li class="messages">' +
+            '<span class = "message-time"> [' + timeString + '] </span>' +
+            '<span class="system-message">' + message + '</span>' +
             '</li>'
         )
     }
