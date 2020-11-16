@@ -49,6 +49,8 @@ chatSocket.onmessage = function(e) {
             let startButton = document.getElementById('id_start_game_button')
             startButton.disabled = false
         }
+    } else if (message_type === 'system_message') {
+        addSystemMessage(message)
     }
 }
 
@@ -106,6 +108,49 @@ function addMessage(message, username) {
     )
 }
 
+/**
+ * add the system announcement to the chat box(or title)
+ * @param message: the announcement
+ */
+function addSystemMessage(message) {
+    if (message) {
+        $("#chat-message-list").append (
+            '<li class="message">' + 
+            '<span>' + "system: " + message + '</span>' + 
+            '</li>'
+        )
+    }
+}
+/**
+ * send target id to update game status
+ * gatme status will be update depends on the step
+ * target includes: 
+ *      wolves target,
+ *      seer target, 
+ *      guard target,
+ *      vote target,
+ * 
+ */
+function updateGameStatus() {
+    chatSocket.send(JSON.stringify({
+        'type': 'system-message',
+        'update': 'update',
+        'target_id': 1, /* should be the target id we choose, here for testing */
+    }))
+}
+
+/**
+ * update the next step in game procedure. send request to the websocket
+ */
+
+function nextStep() {
+    /* send from websocket */
+    //updateGameStatus()
+    chatSocket.send(JSON.stringify({
+        'type': 'system-message',
+        'update': 'next_step'
+    }))
+}
 
 // function getCSRFToken() {
 //     let cookies = document.cookie.split(";")
