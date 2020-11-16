@@ -10,12 +10,11 @@ var chatSocket = new WebSocket(
  * when websocket receive message, call addMessage
  */
 chatSocket.onmessage = function(e) {
-    console.log('in onmessage')
     var data = JSON.parse(e.data)
+    console.log(data)
     let message_type = data['message-type']
     let message = data['message']
     let username = data['username']
-    console.log(message_type)
     if (message_type === 'chat_message') {
         message = sanitize(message)
         addMessage(message, username)
@@ -26,9 +25,24 @@ chatSocket.onmessage = function(e) {
         player_count.innerHTML = message + ' / 6'
 
         // Update list of player names on the page
-        let player_name = data['username']
+        let all_players = data['players']
+        console.log(all_players)
         let player_list = document.getElementById('id_player_list')
-        player_list.innerHTML += player_name
+        // Remove the old player list
+        while (player_list.hasChildNodes()) {
+            player_list.removeChild(player_list.firstChild)
+        }
+        // Recreate the player list
+        all_players.forEach(function(player_name) {
+            let new_player  = document.createElement("li")
+            new_player.innerHTML = player_name
+            player_list.append(new_player)
+        })
+
+        // Update the player who just joined
+        let player_name = data['last_player']
+        let player_joined = document.getElementById('id_player_join')
+        player_joined.innerHTML = player_name + ' joined'
         
         // TODO: Change later to == 6
         if (num_players > 0) {

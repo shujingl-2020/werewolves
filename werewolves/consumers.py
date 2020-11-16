@@ -5,7 +5,6 @@ from channels.generic.websocket import AsyncWebsocketConsumer
 
 class ChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
-        #self.user_id = self.scope['url_route']['kwargs']['user_id']
         ### the default game room ###
         self.room_group_name = 'room_1'
 
@@ -24,13 +23,15 @@ class ChatConsumer(AsyncWebsocketConsumer):
             await self.accept()
 
     async def disconnect(self, close_code):
-        # TODO: Maybe clear players before we disconnect
-        # await database_sync_to_async(self.clear_players)()
+        # Clear players before we disconnect
+        await database_sync_to_async(self.clear_players)()
         # Leave room group
         await self.channel_layer.group_discard(
             self.room_group_name,
             self.channel_name
         )
+
+        self.close()
 
     # Receive message from WebSocket
     async def receive(self, text_data):
@@ -71,22 +72,40 @@ class ChatConsumer(AsyncWebsocketConsumer):
             'message': message
         }))
     
+    # TODO: Let player name be the one who just logged in
     async def players_message(self, event):
         message = event['message']
+        # Get an array of all players
+        all_players = await database_sync_to_async(self.get_all_players)()
+        last_player = await database_sync_to_async(self.get_last_joined_player)()
         # Send message to WebSocket
         await self.send(text_data=json.dumps({
             'message-type': 'players_message',
-            'username': self.scope["user"].username,
+            'last_player': last_player,
+            'players': all_players,
             'message': message
         }))
     
     def create_player(self):
         user = self.scope["user"]
-        new_player = Player(user=user)
-        new_player.save()
+        player = Player.objects.filter(user=user)
+        if (len(player) == 0):
+            new_player = Player(user=user)
+            new_player.save()
 
     def get_num_players(self):
         return Player.objects.all().count()
+    
+    def get_all_players(self):
+        players = Player.objects.all()
+        ret = []
+        for player in players:
+            ret.append(player.user.username)
+        return ret
+    
+    def get_last_joined_player(self):
+        last_player = Player.objects.order_by('-id')[0]
+        return last_player.user.username
         
     def clear_players(self):
         Player.objects.all().delete()
