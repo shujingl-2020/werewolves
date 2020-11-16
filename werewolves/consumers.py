@@ -1,5 +1,5 @@
 import json
-from werewolves.models import Player, GameStatus
+from werewolves.models import Player, GameStatus, Message
 from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncWebsocketConsumer
 from asgiref.sync import sync_to_async
@@ -79,13 +79,18 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 )
         elif message_type == 'chat-message':
             message = text_data_json['message']
+            await database_sync_to_async(self.create_message)(message)
+            id, username =  await database_sync_to_async(self.get_last_message)()
             # Send message to room group
+            # Send all messages in the data base to the room group
             await self.channel_layer.group_send(
                 #self.room_group_name,
                 self.general_group,
                 {
                     'type': 'chat_message',
                     'message': message,
+                    'id': id,
+                    'username': username,
                 }
             )
         elif message_type == 'system-message': 
@@ -128,15 +133,32 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     # Receive message from room group
     async def chat_message(self, event):
+        type = event['type']
         message = event['message']
+        username = event['username']
+        id = event['id']
         # Send message to WebSocket
         await self.send(text_data=json.dumps({
-            'message-type': 'chat_message',
-            'username': self.scope["user"].username,
-            'message': message
+            'message-type': type,
+            'username': username,
+            'message': message,
+            'id': id
         }))
-    
+
     # TODO: Let player name be the one who just logged in
+
+    def create_message(self, message):
+        message_sender = self.scope["user"]
+        message_text = message
+        new_message = Message(message_sender= message_sender,  message_text= message_text)
+        new_message.save()
+
+    def get_last_message(self):
+        messageObject = Message.objects.last()
+        id = messageObject.id
+        username = messageObject.message_sender.username
+        return (id, username)
+
     async def players_message(self, event):
         message = event['message']
         # Get an array of all players

@@ -11,13 +11,14 @@ var chatSocket = new WebSocket(
  */
 chatSocket.onmessage = function(e) {
     var data = JSON.parse(e.data)
-    console.log(data)
     let message_type = data['message-type']
     let message = data['message']
     let username = data['username']
     if (message_type === 'chat_message') {
-        message = sanitize(message)
-        addMessage(message, username)
+        username = data['username']
+        id = data['id']
+        sanitize(message)
+        addMessage(message, username, id)
     } else if (message_type === 'players_message') {
         // Update number of players on the page
         let num_players = data['message']
@@ -45,6 +46,7 @@ chatSocket.onmessage = function(e) {
         player_joined.innerHTML = player_name + ' joined'
         
         // TODO: Change later to == 6
+        console.log("players count: " + num_players)
         if (num_players > 0) {
             let startButton = document.getElementById('id_start_game_button')
             startButton.disabled = false
@@ -100,12 +102,18 @@ function sendMessage() {
  * need future update
  * @param message: the message to add to the chatbox 
  */
-function addMessage(message, username) {
+function addMessage(message, username, id) {
     // append a new messgae to the chat box
-    // TODO: add time and need to distinguish different groups
+    var date = new Date;
+    var hours   = date.getHours();
+    var minutes = date.getMinutes();
+    var seconds = date.getSeconds();
+    var timeString = "" + ((hours > 12) ? hours - 12 : hours);
+    timeString  += ((minutes < 10) ? ":0" : ":") + minutes;
+    timeString  += ((seconds < 10) ? ":0" : ":") + seconds;
     $("#chat-message-list").append (
-        '<li class="message">' + '<span class="chat-username">' + username + '</span>: ' + message + '</li>'
-    )
+      '<li class="messages" id="message_' +  id + '">' + '<span class = "message-time" id="message_time_' + id + '"> [' + timeString + '] </span> <span class="chat-username">  ' + username + '</span>: <span class="message_text" id="message_text_' + id + '">' + message + '</span></li>'
+     )
 }
 
 /**

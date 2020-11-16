@@ -50,7 +50,16 @@ class Player(models.Model):
     speech   = models.BooleanField(default=False)
 
     def __str__(self):
-        return 'Player(' + self.username + ')' + self.role
+        return 'Player(' + self.user.username + ')' + self.role
+
+
+class Message(models.Model):
+    message_text = models.CharField(max_length=200)
+    message_sender = models.ForeignKey(User, on_delete=models.PROTECT, related_name="message_creator")
+
+    def __str__(self):
+        return 'Message(id=' + str(self.id) + ')'
+
 
 class GameStatus(models.Model):
     # False means night, True means day.
