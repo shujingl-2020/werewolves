@@ -50,7 +50,7 @@ class Player(models.Model):
     speech   = models.BooleanField(default=False)
 
     def __str__(self):
-        return 'Player(' + self.username + ')' + self.role
+        return 'Player ' + self.role
 
 class GameStatus(models.Model):
     # False means night, True means day.

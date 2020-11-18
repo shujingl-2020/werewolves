@@ -1,5 +1,6 @@
 import json
-from werewolves.models import Player, GameStatus
+import random
+from werewolves.models import Player, PlayerRole, GameStatus
 from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncWebsocketConsumer
 from asgiref.sync import sync_to_async
@@ -42,11 +43,9 @@ class ChatConsumer(AsyncWebsocketConsumer):
             await self.accept()
 
     async def disconnect(self, close_code):
-        # Clear players before we disconnect
-        await database_sync_to_async(self.clear_players)()
         # Leave room group
         await self.channel_layer.group_discard(
-            #self.room_group_name,
+            # self.room_group_name,
             self.general_group,
             self.channel_name
         )
@@ -70,30 +69,48 @@ class ChatConsumer(AsyncWebsocketConsumer):
             # TODO: Change later to <= 6
             if num_players > 0:
                 await self.channel_layer.group_send(
-                    #self.room_group_name,
+                    # self.room_group_name,
                     self.general_group,
                     {
                         'type': 'players_message',
                         'message': num_players
                     }
                 )
+            if num_players == 2:
+                await self.channel_layer.group_send(
+                    # self.room_group_name,
+                    self.general_group,
+                    {
+                        'type': 'ready_start_game_message',
+                        'message': num_players
+                    }
+                )
+        elif message_type == 'start-game-message':
+            await self.channel_layer.group_send(
+                # self.room_group_name,
+                self.general_group,
+                {
+                    'type': 'start_game_message',
+                    'message': 'start_game'
+                }
+            )
         elif message_type == 'chat-message':
             message = text_data_json['message']
             # Send message to room group
             await self.channel_layer.group_send(
-                #self.room_group_name,
+                # self.room_group_name,
                 self.general_group,
                 {
                     'type': 'chat_message',
                     'message': message,
                 }
             )
-        elif message_type == 'system-message': 
+        elif message_type == 'system-message':
             update = text_data_json['update']
-            if update == 'update' :
+            if update == 'update':
                 target_id = text_data_json['target_id']
                 await database_sync_to_async(self.update_status)(target_id=target_id)
-            elif update == 'next_step' :
+            elif update == 'next_step':
                 await database_sync_to_async(self.next_step)()
             # Send system message to different groups
             await self.channel_layer.group_send(
@@ -125,8 +142,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 }
             )
 
-
     # Receive message from room group
+
     async def chat_message(self, event):
         message = event['message']
         # Send message to WebSocket
@@ -135,7 +152,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             'username': self.scope["user"].username,
             'message': message
         }))
-    
+
     # TODO: Let player name be the one who just logged in
     async def players_message(self, event):
         message = event['message']
@@ -149,11 +166,21 @@ class ChatConsumer(AsyncWebsocketConsumer):
             'players': all_players,
             'message': message
         }))
-    
+
+    async def ready_start_game_message(self, event):
+        await self.send(text_data=json.dumps({
+            'message-type': 'ready_start_game_message'
+        }))
+
+    async def start_game_message(self, event):
+        await self.send(text_data=json.dumps({
+            'message-type': 'start_game_message'
+        }))
+
     #
-    # update target field in GameStatus 
+    # update target field in GameStatus
     #
-    def update_status(self,target_id):
+    def update_status(self, target_id):
         print(target_id)
         game = GameStatus.objects.last()
         new_status = GameStatus()
@@ -176,32 +203,35 @@ class ChatConsumer(AsyncWebsocketConsumer):
         elif (game.step == "ANNOUNCE"):
             if (game.wolves_target != None):
                 if (game.guard_target != game.wolves_target):
-                    player = Player.objects.select_for_update(id = game.wolves_target)
+                    player = Player.objects.select_for_update(
+                        id=game.wolves_target)
                     player.status = "OUT"
                     player.save()
                 else:
-                    new_status.wolves_target = None              
+                    new_status.wolves_target = None
         elif (game.step == "SPEECH"):
             if (game.first_speaker == None):
-                new_status.first_speaker = self.next_speaker(game.wolves_target)
+                new_status.first_speaker = self.next_speaker(
+                    game.wolves_target)
             if (game.current_speaker == None):
                 new_status.current_speaker = new_status.first_speaker
             else:
-                new_status.current_speaker = self.next_speaker(game.current_speaker)
+                new_status.current_speaker = self.next_speaker(
+                    game.current_speaker)
         elif (game.step == "VOTE"):
             if (game.vote_target != None):
                 player = Player.objects.select_for_update(id=game.vote_target)
                 player.status = "OUT"
                 player.save()
-        #else:
+        # else:
             # TODO: update default status
 
         new_status.save()
- 
+
     #
     #   Update next step
     #
-    def next_step(self):       
+    def next_step(self):
         game = GameStatus.objects.last()
         new_status = GameStatus()
         new_status = game
@@ -233,12 +263,12 @@ class ChatConsumer(AsyncWebsocketConsumer):
         elif (game.step == "NOT ASSIGNED"):
             new_status.step = "WOLF"
             new_status.night = False
-        
+
         new_status.save()
-    
+
     #
     #   send system_message based on groups and steps
-    #   groups include: 
+    #   groups include:
     #       general group,
     #       wolves group,
     #       guard group,
@@ -280,7 +310,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 else:
                     message = "Nobody gets voted out."
             elif (game.step == "END_GAME"):
-                message ="Game Over."
+                message = "Game Over."
         elif (group == "wolves"):
             if (game.wolves_target != None):
                 wolves_target = await sync_to_async(Player.objects.get, thread_sensitive=True)(id=game.wolves_target)
@@ -296,7 +326,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     message = "This player is bad."
                 else:
                     message = "This player is good."
-            
+
         await self.send(text_data=json.dumps({
             'message-type': 'system_message',
             'message': message,
@@ -305,24 +335,38 @@ class ChatConsumer(AsyncWebsocketConsumer):
     def create_player(self):
         user = self.scope["user"]
         player = Player.objects.filter(user=user)
-        if (len(player) == 0):
+        if len(player) == 0:
             new_player = Player(user=user)
             new_player.save()
 
+    def assign_roles(self):
+        arr = [0, 1, 2, 3, 4, 5]
+        random.shuffle(arr)
+        all_players = Player.objects.all()
+        for i in range(len(all_players)):
+            if arr[i] == 0 or arr[i] == 1:
+                all_players[i].role = PlayerRole.VILLAGER
+            elif arr[i] == 2 or arr[i] == 3:
+                all_players[i].role = PlayerRole.WOLF
+            elif arr[i] == 4:
+                all_players[i].role = PlayerRole.SEER
+            elif arr[i] == 5:
+                all_players[i].role = PlayerRole.GUARD
+
     def get_num_players(self):
         return Player.objects.all().count()
-    
+
     def get_all_players(self):
         players = Player.objects.all()
         ret = []
         for player in players:
             ret.append(player.user.username)
         return ret
-    
+
     def get_last_joined_player(self):
         last_player = Player.objects.order_by('-id')[0]
         return last_player.user.username
-        
+
     def clear_players(self):
         Player.objects.all().delete()
 
@@ -341,7 +385,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         game.step = "NOT ASSIGNED"
         game.winning = None
         game.wolves = None
-        #TODO: should be set from Player.objects, only for testing
+        # TODO: should be set from Player.objects, only for testing
         game.guard = None
         game.seer = None
         game.villagers = None
@@ -358,8 +402,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
     # param(in): id: the current speaker, need to find the next one
     # return(out): a plaer model, next availbe speaker
     #
-    def next_speaker(self,id):
-        alive_players = Player.objects.filter(status = "ALIVE")
+    def next_speaker(self, id):
+        alive_players = Player.objects.filter(status="ALIVE")
         # if no dead player from the night, select the oldest alive player joined the room
         if (id == None):
             return alive_players.first()
@@ -371,18 +415,18 @@ class ChatConsumer(AsyncWebsocketConsumer):
     #
     #   Used to check the end game condition.
     #   TODO: debug needed
-    #   return(out): 
+    #   return(out):
     #       None: the game is not endpoints
     #       True: good people win
     #       False: wolves win
     #
     def is_end(self):
-        #TODO: only for testing
+        # TODO: only for testing
         return None
         game = GameStatus.objects.last()
         wolf_alive = 0
         good_alive = 0
-        for player in Player.objects.filter(status = "ALIVE"):
+        for player in Player.objects.filter(status="ALIVE"):
             if (player.role == "WOLF"):
                 wolf_alive += 1
             else:
@@ -393,8 +437,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             return False
         else:
             return None
-    
-    #Used to get the most recent game status
+
+    # Used to get the most recent game status
     def get_game_status(self):
         return GameStatus.objects.last()
-    
