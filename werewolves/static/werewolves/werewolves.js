@@ -11,13 +11,14 @@ var chatSocket = new WebSocket(
  */
 chatSocket.onmessage = function(e) {
     var data = JSON.parse(e.data)
-    console.log(data)
     let message_type = data['message-type']
     let message = data['message']
     let username = data['username']
     if (message_type === 'chat_message') {
-        message = sanitize(message)
-        addMessage(message, username)
+        username = data['username']
+        id = data['id']
+        sanitize(message)
+        addMessage(message, username, id)
     } else if (message_type === 'players_message') {
         // Update number of players on the page
         let player_count = document.getElementById('id_player_num')
@@ -41,7 +42,6 @@ chatSocket.onmessage = function(e) {
         let player_name = data['last_player']
         let player_joined = document.getElementById('id_player_join')
         player_joined.innerHTML = player_name + ' joined'
-
         let start_button = document.getElementById('id_start_game_button')
         // Show start button only for the first joined player
         if (message === 1) {
@@ -124,12 +124,23 @@ function sendMessage() {
  * need future update
  * @param message: the message to add to the chatbox 
  */
-function addMessage(message, username) {
+function addMessage(message, username, id) {
     // append a new messgae to the chat box
-    // TODO: add time and need to distinguish different groups
+    var date = new Date;
+    var hours   = date.getHours();
+    var minutes = date.getMinutes();
+    var seconds = date.getSeconds();
+    var timeString = "" + hours;
+    timeString  += ((minutes < 10) ? ":0" : ":") + minutes;
+    timeString  += ((seconds < 10) ? ":0" : ":") + seconds;
+    if (message) {
     $("#chat-message-list").append (
-        '<li class="message">' + '<span class="chat-username">' + username + '</span>: ' + message + '</li>'
-    )
+      '<li class="messages" id="message_' +  id + '">'
+      +'<span class = "message-time" id="message_time_' + id + '"> [' + timeString + '] </span>  '
+      +'<span class="chat-username">  ' + username + '</span>: '+
+      '<span class="message-text" id="message_text_' + id + '">' + message + '</span></li>'
+     )
+     }
 }
 
 /**
@@ -137,10 +148,18 @@ function addMessage(message, username) {
  * @param message: the announcement
  */
 function addSystemMessage(message) {
+    var date = new Date;
+    var hours   = date.getHours();
+    var minutes = date.getMinutes();
+    var seconds = date.getSeconds();
+    var timeString = "" + hours;
+    timeString  += ((minutes < 10) ? ":0" : ":") + minutes;
+    timeString  += ((seconds < 10) ? ":0" : ":") + seconds;
     if (message) {
         $("#chat-message-list").append (
-            '<li class="message">' + 
-            '<span>' + "system: " + message + '</span>' + 
+            '<li class="messages">' +
+            '<span class = "message-time"> [' + timeString + '] </span>' +
+            '<span class="system-message">' + message + '</span>' +
             '</li>'
         )
     }

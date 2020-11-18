@@ -22,8 +22,9 @@ class GameStep(Enum):
     ANNOUNCE = "ANNOUNCE"
     SPEECH = "SPEECH"
     VOTE = "VOTE"
-    END_GAME = "END_GAME"
+    END_SPEECH = "END_SPEECH"
     END_VOTE = "END_VOTE"
+    END_GAME = "END_GAME"
     NONE = "NOT ASSIGNED"
 
     @classmethod
@@ -52,6 +53,14 @@ class Player(models.Model):
     def __str__(self):
         return 'Player ' + self.role
 
+
+class Message(models.Model):
+    message_text = models.CharField(max_length=200)
+    message_sender = models.ForeignKey(User, on_delete=models.PROTECT, related_name="message_creator")
+
+    def __str__(self):
+        return 'Message(id=' + str(self.id) + ')'
+
 class GameStatus(models.Model):
     # False means night, True means day.
     night           = models.BooleanField(default=False) 
@@ -67,6 +76,10 @@ class GameStatus(models.Model):
     step = models.CharField(max_length=30, choices=GameStep.choices(), default=GameStep.NONE)
     # Indicate if the game is over, False: wolves win, True: good people win, None: game is not over
     winning         = models.BooleanField(null=True, default=None)
+    # Indicate if the speech is over, False: speech started but not end True: speech end, None: speech not started
+    speech_over = models.BooleanField(null=True, default=None)
+    # Indicate if the game is over, False: vote started but not end, True: vote end, None: vote not started
+    vote_over = models.BooleanField(null=True, default=None)
     # null means the player who got assigned the character is out.
     wolves          = models.ForeignKey(Player, on_delete=models.PROTECT, related_name="is_wolf", null=True)
     seer            = models.ForeignKey(Player, on_delete=models.PROTECT, related_name="is_seer", null=True)
