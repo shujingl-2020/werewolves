@@ -1,4 +1,6 @@
 import json
+from random import randint
+
 from werewolves.models import Player, GameStatus, Message
 from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncWebsocketConsumer
@@ -43,13 +45,13 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     async def disconnect(self, close_code):
         # Clear players before we disconnect
-        await database_sync_to_async(self.clear_players)()
+        # await database_sync_to_async(self.clear_players)()
         # Leave room group
-        await self.channel_layer.group_discard(
-            #self.room_group_name,
-            self.general_group,
-            self.channel_name
-        )
+        # await self.channel_layer.group_discard(
+        #     #self.room_group_name,
+        #     self.general_group,
+        #     self.channel_name
+        # )
 
         self.close()
 
@@ -80,19 +82,34 @@ class ChatConsumer(AsyncWebsocketConsumer):
         elif message_type == 'chat-message':
             message = text_data_json['message']
             await database_sync_to_async(self.create_message)(message)
-            id, username =  await database_sync_to_async(self.get_last_message)()
+            id, username, role =  await database_sync_to_async(self.get_last_message)()
+            # check what is the game status and the message sender role to decide which group to send
+            status = await database_sync_to_async(self.get_game_status)()
+            # if werewolves are killing people, the messages that they send should be seen among themselves
+            if status.step == "WOLF" and role == "WOLF":
+                await self.channel_layer.group_send(
+                    # self.room_group_name,
+                    self.wolves_group,
+                    {
+                        'type': 'chat_message',
+                        'message': message,
+                        'id': id,
+                        'username': username,
+                    }
+                )
             # Send message to room group
             # Send all messages in the data base to the room group
-            await self.channel_layer.group_send(
-                #self.room_group_name,
-                self.general_group,
-                {
-                    'type': 'chat_message',
-                    'message': message,
-                    'id': id,
-                    'username': username,
-                }
-            )
+            else:
+                await self.channel_layer.group_send(
+                    #self.room_group_name,
+                    self.general_group,
+                    {
+                        'type': 'chat_message',
+                        'message': message,
+                        'id': id,
+                        'username': username,
+                    }
+                )
         elif message_type == 'system-message': 
             update = text_data_json['update']
             if update == 'update' :
@@ -156,8 +173,16 @@ class ChatConsumer(AsyncWebsocketConsumer):
     def get_last_message(self):
         messageObject = Message.objects.last()
         id = messageObject.id
-        username = messageObject.message_sender.username
-        return (id, username)
+        sender = messageObject.message_sender
+        username = sender.username
+        print("sender: " + username)
+        print("allplayers")
+        print(Player.objects.all())
+        player = Player.objects.get(user=sender)
+        print("player: " + player.role)
+        role = player.role
+        return (id, username, role)
+
 
     async def players_message(self, event):
         message = event['message']
@@ -171,10 +196,9 @@ class ChatConsumer(AsyncWebsocketConsumer):
             'players': all_players,
             'message': message
         }))
-    
-    #
-    # update target field in GameStatus 
-    #
+
+
+    # update target field in GameStatus
     def update_status(self,target_id):
         print(target_id)
         game = GameStatus.objects.last()
@@ -327,9 +351,13 @@ class ChatConsumer(AsyncWebsocketConsumer):
     def create_player(self):
         user = self.scope["user"]
         player = Player.objects.filter(user=user)
+        roles = ["WOLF", "VILLAGER"]
+        role = roles[1]
         if (len(player) == 0):
-            new_player = Player(user=user)
+            new_player = Player(user=user, role=role)
+            print(new_player.role)
             new_player.save()
+            print(Player.objects.all())
 
     def get_num_players(self):
         return Player.objects.all().count()
