@@ -57,7 +57,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
     async def receive(self, text_data):
         text_data_json = json.loads(text_data)
         message_type = text_data_json['type']
-        print("in receive")
+        #print("in receive")
         if message_type == 'join-message':
             # When we receive a request, create a new player in the database
             await database_sync_to_async(self.create_player)()
@@ -204,12 +204,19 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 else:
                     new_status.wolves_target = None              
         elif (game.step == "SPEECH"):
-            if (game.first_speaker == None):
-                new_status.first_speaker = self.next_speaker(game.wolves_target)
-            if (game.current_speaker == None):
-                new_status.current_speaker = new_status.first_speaker
-            else:
-                new_status.current_speaker = self.next_speaker(game.current_speaker)
+            if (game.speech_over == None):
+                if (game.first_speaker == None):
+                    new_status.first_speaker = self.next_speaker(game.wolves_target)
+                    new_status.current_speaker = new_status.first_speaker
+            elif (~game.speech_over):
+                new_status.current_speaker = self.next_speaker(
+                    game.current_speaker)
+            #if (game.first_speaker == None):
+            #    new_status.first_speaker = self.next_speaker(game.wolves_target)
+            #if (game.current_speaker == None):
+            #   new_status.current_speaker = new_status.first_speaker
+            #else:
+            #    new_status.current_speaker = self.next_speaker(game.current_speaker)
         elif (game.step == "VOTE"):
             if (game.vote_target != None):
                 player = Player.objects.select_for_update(id=game.vote_target)
@@ -237,18 +244,25 @@ class ChatConsumer(AsyncWebsocketConsumer):
             new_status.step = "ANNOUNCE"
             new_status.night = True
         elif (game.step == "ANNOUNCE"):
-            new_status.winning = self.is_end()
+            new_status.winning = self.is_end_game()
             if (new_status.winning == None):
                 new_status.step = "SPEECH"
                 new_status.night = True
             else:
                 new_status.step = "END_GAME"
         elif (game.step == "SPEECH"):
+            new_status.speech_over = self.is_end_speech()
+            if (new_status.speech_over):
+                new_status.step = "END_SPEECH"
+                new_status.night = True
+        elif (game.step == "END_SPEECH"):
             new_status.step = "VOTE"
             new_status.night = True
         elif (game.step == "VOTE"):
-            new_status.step = "END_VOTE"
-            new_status.night = True
+            new_status.vote_over = self.is_end_vote()
+            if (new_status.vote_over):
+                new_status.step = "END_VOTE"
+                new_status.night = True
         elif (game.step == "END_VOTE"):
             new_status.step = "WOLF"
             new_status.night = False
@@ -270,7 +284,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
         game = await database_sync_to_async(self.get_game_status)()
         message = ""
         group = event["group"]
-
         if (group == "general"):
             if (game.step == "WOLF"):
                 message = "Wolf is choosing a player to kill."
@@ -362,6 +375,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
         game.current_speaker = None
         game.step = "NOT ASSIGNED"
         game.winning = None
+        game.speech_over = None
+        game.vote_over = None
         game.wolves = None
         #TODO: should be set from Player.objects, only for testing
         game.guard = None
@@ -398,7 +413,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
     #       True: good people win
     #       False: wolves win
     #
-    def is_end(self):
+    def is_end_game(self):
         #TODO: only for testing
         return None
         game = GameStatus.objects.last()
@@ -416,6 +431,41 @@ class ChatConsumer(AsyncWebsocketConsumer):
         else:
             return None
     
+    #
+    #   Used to check the end game condition.
+    #   TODO: debug needed
+    #   return(out):
+    #       None: speech is not started
+    #       True: speech is over
+    #       False: speech is started but not over
+    #
+    def is_end_speech(self):
+        #TODO: only for testing
+        return True
+        game = GameStatus.objects.last()
+        if (~game.speech_over):
+            if (game.current_speaker == game.first_speaker):
+                return True
+        elif (game.speech_over == None):
+            if (game.current_speaker != None):
+                return False
+        else:
+            return None
+
+    #
+    #   Used to check the voting condition.
+    #   TODO: debug needed
+    #   return(out):
+    #       None: voting is not started
+    #       True: voting is over
+    #       False: voting is started but not over
+    #
+
+    def is_end_vote(self):
+        #TODO: only for testing
+        return True
+        #TODO: need to implement vote checking function
+
     #Used to get the most recent game status
     def get_game_status(self):
         return GameStatus.objects.last()
