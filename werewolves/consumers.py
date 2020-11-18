@@ -232,16 +232,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 else:
                     new_status.wolves_target = None
         elif (game.step == "SPEECH"):
-<<<<<<< HEAD
-            if (game.first_speaker == None):
-                new_status.first_speaker = self.next_speaker(
-                    game.wolves_target)
-            if (game.current_speaker == None):
-                new_status.current_speaker = new_status.first_speaker
-            else:
-                new_status.current_speaker = self.next_speaker(
-                    game.current_speaker)
-=======
             if (game.speech_over == None):
                 if (game.first_speaker == None):
                     new_status.first_speaker = self.next_speaker(game.wolves_target)
@@ -255,7 +245,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
             #   new_status.current_speaker = new_status.first_speaker
             #else:
             #    new_status.current_speaker = self.next_speaker(game.current_speaker)
->>>>>>> fc388cd7cfed9a9eafa3e85371385368562bc9b7
         elif (game.step == "VOTE"):
             if (game.vote_target != None):
                 player = Player.objects.select_for_update(id=game.vote_target)
@@ -466,13 +455,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
     #       True: good people win
     #       False: wolves win
     #
-<<<<<<< HEAD
-    def is_end(self):
-        # TODO: only for testing
-=======
     def is_end_game(self):
         #TODO: only for testing
->>>>>>> fc388cd7cfed9a9eafa3e85371385368562bc9b7
         return None
         game = GameStatus.objects.last()
         wolf_alive = 0
@@ -488,10 +472,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
             return False
         else:
             return None
-<<<<<<< HEAD
-
-    # Used to get the most recent game status
-=======
     
     #
     #   Used to check the end game condition.
@@ -529,6 +509,5 @@ class ChatConsumer(AsyncWebsocketConsumer):
         #TODO: need to implement vote checking function
 
     #Used to get the most recent game status
->>>>>>> fc388cd7cfed9a9eafa3e85371385368562bc9b7
     def get_game_status(self):
         return GameStatus.objects.last()
