@@ -49,7 +49,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         # Leave room group
         # await self.channel_layer.group_discard(
         #     #self.room_group_name,
-        #     self.general_group,
+        #     self.general_group,   
         #     self.channel_name
         # )
 
@@ -176,11 +176,9 @@ class ChatConsumer(AsyncWebsocketConsumer):
         sender = messageObject.message_sender
         username = sender.username
         print("sender: " + username)
-        print("allplayers")
-        print(Player.objects.all())
         player = Player.objects.get(user=sender)
-        print("player: " + player.role)
         role = player.role
+        print("role: " + role)
         return (id, username, role)
 
 
@@ -376,9 +374,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
     def clear_players(self):
         Player.objects.all().delete()
 
-    #
     # Used to initialize game_status
-    #
     def init_game_status(self):
         game = GameStatus()
         game.night = False
@@ -402,7 +398,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
         game.save()
 
-    #
     #   get the next alive speaker.
     # TODO: the first player killed at night should also be counted. debug needed
     # param(in): id: the current speaker, need to find the next one
