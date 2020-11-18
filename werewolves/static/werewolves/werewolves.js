@@ -21,13 +21,11 @@ chatSocket.onmessage = function(e) {
         addMessage(message, username, id)
     } else if (message_type === 'players_message') {
         // Update number of players on the page
-        let num_players = data['message']
         let player_count = document.getElementById('id_player_num')
-        player_count.innerHTML = message + ' / 6'
+        player_count.innerHTML = message + ' / 2' // TODO: Change to ' / 6' later
 
         // Update list of player names on the page
         let all_players = data['players']
-        console.log(all_players)
         let player_list = document.getElementById('id_player_list')
         // Remove the old player list
         while (player_list.hasChildNodes()) {
@@ -44,13 +42,18 @@ chatSocket.onmessage = function(e) {
         let player_name = data['last_player']
         let player_joined = document.getElementById('id_player_join')
         player_joined.innerHTML = player_name + ' joined'
-        
-        // TODO: Change later to == 6
-        console.log("players count: " + num_players)
-        if (num_players > 0) {
-            let startButton = document.getElementById('id_start_game_button')
-            startButton.disabled = false
+        let start_button = document.getElementById('id_start_game_button')
+        // Show start button only for the first joined player
+        if (message === 1) {
+            start_button.style.visibility = 'visible'
         }
+     } else if (message_type === 'ready_start_game_message') {
+        let start_button = document.getElementById('id_start_game_button')
+        if (start_button.style.visibility === 'visible') {
+            start_button.disabled = false
+        }
+    } else if (message_type === 'start_game_message') {
+        startGame()
     } else if (message_type === 'system_message') {
         addSystemMessage(message)
     }
@@ -63,6 +66,25 @@ function sendJoin() {
             'message': 'Join',
         }))
     }
+}
+
+function distributeCard() {
+    chatSocket.send(JSON.stringify({
+        'type': 'distribute-card-message',
+        'message': 'Distribute Card',
+    }))
+}
+
+function joinGame() {
+    chatSocket.send(JSON.stringify({
+        'type': 'start-game-message'
+    }))
+}
+
+function startGame() {
+    let start_button = document.getElementById('id_start_game_hidden_button')
+    start_button.disabled = false
+    start_button.click()
 }
 
 /**
@@ -172,21 +194,3 @@ function nextStep() {
         'update': 'next_step'
     }))
 }
-
-// function getCSRFToken() {
-//     let cookies = document.cookie.split(";")
-//     for (let i = 0; i < cookies.length; i++) {
-//         let c = cookies[i].trim()
-//         if (c.startsWith("csrftoken=")) {
-//             return c.substring("csrftoken=".length, c.length)
-//         }
-//     }
-//     return "unknown";
-// }
-// function updateError(xhr, status, error) {
-//     displayError('Status=' + xhr.status + ' (' + error + ')')
-// }
-
-// function displayError(message) {
-//     $("#error").html(message)
-// }

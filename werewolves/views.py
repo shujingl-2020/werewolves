@@ -8,6 +8,7 @@ from django.urls import reverse
 from django.views.decorators.csrf import ensure_csrf_cookie
 
 from werewolves.forms import LoginForm, RegisterForm
+from werewolves.models import Player
 
 @login_required
 @ensure_csrf_cookie
@@ -18,6 +19,9 @@ def waitingroom_action(request):
 
 @login_required
 def start_game_action(request):
+    # player = Player.objects.filter(user=request.user)
+    # print(player)
+    # context = {'identity': player[0].role}
     context = {}
     return render(request, 'werewolves/game.html', context)
 
