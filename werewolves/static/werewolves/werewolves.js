@@ -42,17 +42,17 @@ chatSocket.onmessage = function(e) {
         let player_name = data['last_player']
         let player_joined = document.getElementById('id_player_join')
         player_joined.innerHTML = player_name + ' joined'
+
         let start_button = document.getElementById('id_start_game_button')
         // Show start button only for the first joined player
         if (message === 1) {
             start_button.style.visibility = 'visible'
         }
-     } else if (message_type === 'ready_start_game_message') {
-        let start_button = document.getElementById('id_start_game_button')
-        if (start_button.style.visibility === 'visible') {
+        // Enable start button for the first player when we have two players in the game 
+        if (message === 2 && start_button.style.visibility === 'visible') {
             start_button.disabled = false
         }
-    } else if (message_type === 'start_game_message') {
+     } else if (message_type === 'start_game_message') {
         startGame()
     } else if (message_type === 'system_message') {
         addSystemMessage(message)

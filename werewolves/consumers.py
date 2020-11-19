@@ -76,15 +76,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
                         'message': num_players
                     }
                 )
-            if num_players == 2:
-                await self.channel_layer.group_send(
-                    # self.room_group_name,
-                    self.general_group,
-                    {
-                        'type': 'ready_start_game_message',
-                        'message': num_players
-                    }
-                )
         elif message_type == 'start-game-message':
             await self.channel_layer.group_send(
                 # self.room_group_name,
@@ -187,11 +178,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
             'last_player': last_player,
             'players': all_players,
             'message': message
-        }))
-
-    async def ready_start_game_message(self, event):
-        await self.send(text_data=json.dumps({
-            'message-type': 'ready_start_game_message'
         }))
 
     async def start_game_message(self, event):
@@ -376,6 +362,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         arr = [0, 1, 2, 3, 4, 5]
         random.shuffle(arr)
         all_players = Player.objects.all()
+        print('haha')
         for i in range(len(all_players)):
             if arr[i] == 0 or arr[i] == 1:
                 all_players[i].role = PlayerRole.VILLAGER
