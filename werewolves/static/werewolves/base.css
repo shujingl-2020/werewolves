@@ -6,6 +6,10 @@
     padding: 15px 15px;
 }
 
+#id_name_of_site {
+    margin-left: 120px;
+}
+
 hr {
   border-top: 10px solid #494946 !important;
   border-radius: 5px !important;
@@ -80,7 +84,7 @@ table {
 
 .players-label {
    text-align: center;
-
+    padding-left: 0px !important;
 }
 
 .player-list{
