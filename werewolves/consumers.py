@@ -88,19 +88,34 @@ class ChatConsumer(AsyncWebsocketConsumer):
         elif message_type == 'chat-message':
             message = text_data_json['message']
             await database_sync_to_async(self.create_message)(message)
-            id, username =  await database_sync_to_async(self.get_last_message)()
+            id, username, role =  await database_sync_to_async(self.get_last_message)()
+            # check what is the game status and the message sender role to decide which group to send
+            status = await database_sync_to_async(self.get_game_status)()
+            # if werewolves are killing people, the messages that they send should be seen among themselves
+            if status.step == "WOLF" and role == "WOLF":
+                await self.channel_layer.group_send(
+                    # self.room_group_name,
+                    self.wolves_group,
+                    {
+                        'type': 'chat_message',
+                        'message': message,
+                        'id': id,
+                        'username': username,
+                    }
+                )
             # Send message to room group
             # Send all messages in the data base to the room group
-            await self.channel_layer.group_send(
-                # self.room_group_name,
-                self.general_group,
-                {
-                    'type': 'chat_message',
-                    'message': message,
-                    'id': id,
-                    'username': username,
-                }
-            )
+            else:
+                await self.channel_layer.group_send(
+                    #self.room_group_name,
+                    self.general_group,
+                    {
+                        'type': 'chat_message',
+                        'message': message,
+                        'id': id,
+                        'username': username,
+                    }
+                )
         elif message_type == 'system-message':
             update = text_data_json['update']
             if update == 'update':
@@ -164,8 +179,14 @@ class ChatConsumer(AsyncWebsocketConsumer):
     def get_last_message(self):
         messageObject = Message.objects.last()
         id = messageObject.id
-        username = messageObject.message_sender.username
-        return (id, username)
+        sender = messageObject.message_sender
+        username = sender.username
+        print("sender: " + username)
+        player = Player.objects.get(user=sender)
+        role = player.role
+        print("role: " + role)
+        return (id, username, role)
+
 
     async def players_message(self, event):
         message = event['message']
@@ -390,9 +411,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
     def clear_players(self):
         Player.objects.all().delete()
 
-    #
     # Used to initialize game_status
-    #
     def init_game_status(self):
         game = GameStatus()
         game.night = False
@@ -418,7 +437,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
         game.save()
 
-    #
     #   get the next alive speaker.
     # TODO: the first player killed at night should also be counted. debug needed
     # param(in): id: the current speaker, need to find the next one
@@ -459,7 +477,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             return False
         else:
             return None
-    
+
     #
     #   Used to check the end game condition.
     #   TODO: debug needed

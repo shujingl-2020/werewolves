@@ -18,6 +18,6 @@ from django.urls import path, include
 from werewolves import views
 
 urlpatterns = [
-    path('', views.home_action),
+    path('', views.login_action),
     path('werewolves/', include('werewolves.urls')),
 ]

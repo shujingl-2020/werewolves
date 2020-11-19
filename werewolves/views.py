@@ -12,7 +12,7 @@ from werewolves.models import Player
 
 @login_required
 @ensure_csrf_cookie
-def home_action(request):
+def waitingroom_action(request):
     if request.method == 'GET':
         context = {}
         return render(request, 'werewolves/waitingroom.html', context)
@@ -46,7 +46,7 @@ def login_action(request):
 
     login(request, new_user)
 
-    return redirect(reverse('home'))
+    return redirect(reverse('waitingroom'))
 
 
 def logout_action(request):
@@ -80,4 +80,4 @@ def register_action(request):
                             password=form.cleaned_data['password'])
 
     login(request, new_user)
-    return redirect(reverse('home'))
+    return redirect(reverse('login'))
