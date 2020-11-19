@@ -77,6 +77,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     }
                 )
         elif message_type == 'start-game-message':
+            await database_sync_to_async(self.assign_roles)()
             await self.channel_layer.group_send(
                 # self.room_group_name,
                 self.general_group,
@@ -383,16 +384,17 @@ class ChatConsumer(AsyncWebsocketConsumer):
         arr = [0, 1, 2, 3, 4, 5]
         random.shuffle(arr)
         all_players = Player.objects.all()
-        print('haha')
+        # TODO: Change later to len(arr)
         for i in range(len(all_players)):
             if arr[i] == 0 or arr[i] == 1:
-                all_players[i].role = PlayerRole.VILLAGER
+                all_players[i].role = "VILLAGER"
             elif arr[i] == 2 or arr[i] == 3:
-                all_players[i].role = PlayerRole.WOLF
+                all_players[i].role = "WOLF"
             elif arr[i] == 4:
-                all_players[i].role = PlayerRole.SEER
+                all_players[i].role = "SEER"
             elif arr[i] == 5:
-                all_players[i].role = PlayerRole.GUARD
+                all_players[i].role = "GUARD"
+            all_players[i].save()
 
     def get_num_players(self):
         return Player.objects.all().count()

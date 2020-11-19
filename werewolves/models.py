@@ -44,8 +44,8 @@ class PlayerStatus(Enum):
 class Player(models.Model):
     # Username must be shorter than 30 characters.
     user     = models.ForeignKey(User, on_delete=models.PROTECT, related_name="player", null=True)
-    role     = models.CharField(max_length=30, choices=PlayerRole.choices(), default=PlayerRole.NONE)
-    status   = models.CharField(max_length=30, choices=PlayerStatus.choices(), default=PlayerStatus.ALIVE)
+    role     = models.CharField(max_length=30, choices=PlayerRole.choices(), default="NONE")
+    status   = models.CharField(max_length=30, choices=PlayerStatus.choices(), default="ALIVE")
     vote     = models.ForeignKey('self', on_delete=models.CASCADE, related_name='voted', null=True)
     # TODO: Tentative field, indicate whether a player is making a speech or not
     speech   = models.BooleanField(default=False)
