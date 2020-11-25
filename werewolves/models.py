@@ -64,7 +64,7 @@ class Message(models.Model):
 
 class GameStatus(models.Model):
     # False means night, True means day.
-    night           = models.BooleanField(default=False) 
+    night           = models.BooleanField(default=False)
     # Target player's id, null means the wolves haven't decided yet.
     wolves_target          = models.IntegerField(null=True)
     guard_target           = models.IntegerField(null=True)

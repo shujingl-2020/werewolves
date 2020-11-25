@@ -1,0 +1,14 @@
+{% extends "werewolves/base.html" %}
+
+{% block heading %}
+<span id="id_logged_in_username">{{user.username}}</span>
+{% endblock %}
+
+{% block content %}
+<div>
+    <form method="get" action="{% url 'waitingroom' %}">
+        <button class="buttons" id="id_join_waiting_room_button">Join Waiting Room</button>
+        <span id="error" class="error"></span>
+    </form>
+</div>
+{% endblock %}

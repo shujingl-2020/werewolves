@@ -7,11 +7,20 @@ from asgiref.sync import sync_to_async
 
 
 class ChatConsumer(AsyncWebsocketConsumer):
+    # TODO: Know when
     async def connect(self):
         self.general_group = "general_group"    # all players are in this group
         self.wolves_group = "wolves_group"      # all wolves are in this group
         self.seer_group = "seer_group"          # seer is in this group
         self.guard_group = "guard_group"        # guard is in this group
+
+        # num_players = await database_sync_to_async(self.check_num_players)()
+        # if num_players < 6:
+        await self.channel_layer.group_add(
+            self.general_group,
+            self.channel_name
+        )
+
 
         # Put all players in the general group
         await self.channel_layer.group_add(
@@ -86,6 +95,15 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 {
                     'type': 'start_game_message',
                     'message': 'start_game'
+                }
+            )
+        elif message_type == 'exit-game-message':
+            await database_sync_to_async(self.delete_current_player)()
+            await self.channel_layer.group_send(
+                self.general_group,
+                {
+                    'type': 'exit_game_message',
+                    'message': 'exit_game'
                 }
             )
         elif message_type == 'chat-message':
@@ -234,9 +252,31 @@ class ChatConsumer(AsyncWebsocketConsumer):
         print("role: " + role)
         return (id, username, role)
 
+    async def players_message(self, event):
+        message = event['message']
+        # Get an array of all players
+        all_players = await database_sync_to_async(self.get_all_players)()
+        last_player = await database_sync_to_async(self.get_last_joined_player)()
+        # Send message to WebSocket
+        await self.send(text_data=json.dumps({
+            'message-type': 'players_message',
+            'last_player': last_player,
+            'players': all_players,
+            'message': message
+        }))
 
-    '''update game status feature'''
+    # TODO: Change broadcast audience to the first six players
+    async def start_game_message(self, event):
+        await self.send(text_data=json.dumps({
+            'message-type': 'start_game_message'
+        }))
 
+    async def exit_game_message(self, event):
+        print('exiting game')
+        await self.send(text_data=json.dumps({
+            'message-type': 'exit_game_message'
+        }))
+    #
     # update target field in GameStatus
     def update_status(self, target_id):
         print(target_id)
@@ -439,6 +479,11 @@ class ChatConsumer(AsyncWebsocketConsumer):
     def get_last_joined_player(self):
         last_player = Player.objects.order_by('-id')[0]
         return last_player.user.username
+
+    def delete_current_player(self):
+        current_user   = self.scope["user"]
+        current_player = Player.objects.filter(user=current_user)[0]
+        current_player.delete()
 
     def clear_players(self):
         Player.objects.all().delete()

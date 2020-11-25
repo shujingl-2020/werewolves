@@ -48,13 +48,15 @@ chatSocket.onmessage = function(e) {
 //        if (message === 1) {
             start_button.style.visibility = 'visible'
 //        }
-        // Enable start button for the first player when we have two players in the game 
+        // Enable start button for the first player when we have two players in the game
 //        if (message === 2 && start_button.style.visibility === 'visible') {
             start_button.disabled = false
 //        }
      } else if (message_type === 'start_game_message') {
         startGame()
-    }  else if (message_type === 'system_message') {
+    } else if (message_type === 'exit_game_message') {
+        endGame()
+    } else if (message_type === 'system_message') {
         addSystemMessage(message)
     }  else if (message_type === 'select_message') {
         let target_id = data['target_id']
@@ -92,10 +94,22 @@ function joinGame() {
     }))
 }
 
+function exitGame() {
+    chatSocket.send(JSON.stringify({
+        'type': 'exit-game-message'
+    }))
+}
+
 function startGame() {
     let start_button = document.getElementById('id_start_game_hidden_button')
     start_button.disabled = false
     start_button.click()
+}
+
+function endGame() {
+    let end_button = document.getElementById('id_end_game_button')
+    end_button.disabled = false
+    end_button.click()
 }
 
 /**
@@ -107,7 +121,7 @@ chatSocket.onclose = function(e) {
 
 /**
  * sanitize input text
- */ 
+ */
 function sanitize(s) {
     // Be sure to replace ampersand first
     return s.replace(/&/g, '&amp;')
@@ -135,7 +149,7 @@ function sendMessage() {
 /**
  * add the new message at the bottom of the chat box
  * need future update
- * @param message: the message to add to the chatbox 
+ * @param message: the message to add to the chatbox
  */
 function addMessage(message, username, id) {
     // append a new messgae to the chat box
@@ -180,12 +194,12 @@ function addSystemMessage(message) {
 /**
  * send target id to update game status
  * gatme status will be update depends on the step
- * target includes: 
+ * target includes:
  *      wolves target,
- *      seer target, 
+ *      seer target,
  *      guard target,
  *      vote target,
- * 
+ *
  */
 function updateGameStatus() {
     chatSocket.send(JSON.stringify({
@@ -257,4 +271,3 @@ function updateCanvas() {
         elements[0].parentNode.removeChild(elements[0]);
     }
 }
-
