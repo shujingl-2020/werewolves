@@ -56,6 +56,17 @@ chatSocket.onmessage = function(e) {
         startGame()
     }  else if (message_type === 'system_message') {
         addSystemMessage(message)
+    }  else if (message_type === 'select_message') {
+        let target_id = data['target_id']
+        let role = data['role']
+        let status = data['status']
+        console.log(`player role ${role}`)
+        console.log(`current status ${status}`)
+        if (role === status || status === 'VOTE') {
+             selectPlayer(target_id)
+        }
+    } else if (message_type === 'confirm_message') {
+        updateCanvas()
     }
 }
 
@@ -196,3 +207,54 @@ function nextStep() {
         'update': 'next_step'
     }))
 }
+
+/**
+need to know the current player role and game status for the select player function to work
+**/
+function sendSelect(id) {
+    id = String(id)
+    chatSocket.send(JSON.stringify({
+        'type': 'select-message',
+        'id': id,
+    }))
+}
+
+/**
+add a confirm button if a person is selected and remove other already added buttons
+**/
+function selectPlayer(id) {
+   for (let i = 1; i <= 6; i++) {
+        if (i !== id) {
+            var confirm_btn = document.getElementById('confirm_button_' + String(i))
+            if (confirm_btn.style.display ==='block') {
+                  confirm_btn.style.display ='none'
+                  confirm_btn.disabled = true
+            }
+        }
+   }
+   var currentButton = document.getElementById('confirm_button_' + String(id))
+   console.log(`button ${currentButton.style.display}`)
+   currentButton.style.display ='block'
+   console.log(`button after clicked ${currentButton.style.visibility}`)
+   currentButton.disabled = false
+   console.log(`button after clicked enable ${currentButton.disabled}`)
+}
+
+//confirm a target
+function sendConfirm(target_id) {
+    console.log('in send confirm')
+    id = String(target_id)
+    chatSocket.send(JSON.stringify({
+        'type': 'confirm-message',
+        'target': id
+    }))
+}
+
+//remove all players buttons and update the canvas
+function updateCanvas() {
+    var elements = document.getElementsByClassName('confirm-button');
+    while(elements.length > 0){
+        elements[0].parentNode.removeChild(elements[0]);
+    }
+}
+

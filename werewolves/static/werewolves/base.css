@@ -106,7 +106,7 @@ img {
 .row {
    margin-left: 0px !important;
    margin-right: 0px !important;
-   margin-bottom: 50px;
+   margin-bottom: 10px;
 }
 
 #chatbox {
@@ -162,8 +162,17 @@ img {
    text-align: left;
 }
 
-.avatar-row {
-   margin-bottom: 10px;
+.confirm-button {
+   width: 80px;
+   border-radius: 3px;
+   border-width: 0.5px;
+   padding: 5px 5px;
+   text-align: center;
+   font-size: 15px;
+}
+
+.button-container {
+   height: 30px;
 }
 
 .message-time {

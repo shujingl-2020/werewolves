@@ -40,6 +40,8 @@ def start_game_action(request):
             else:
                 context['avatar'+ str(id)] = "werewolves/images/good_avatar.png"
             # print(f'player username {player.user.username}  id in game {player.id_in_game}')
+            player.save()
+            print(f'assigned id  {player}')
         id += 1
     # show different avatars
     return render(request, 'werewolves/game.html', context)

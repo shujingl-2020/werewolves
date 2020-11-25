@@ -20,7 +20,7 @@
                     <div class="col-md-3 col-lg-3">
                     </div>
                     <div class="col-md-4 col-lg-4">
-                        <a href="#" id="player_1_avatar_link">
+                        <a href="#" onclick="sendSelect(1)" id="player_1_avatar_link">
                             <img id="avatar1_img" src="{% static avatar1 %}">
                         </a>
                     </div>
@@ -40,19 +40,30 @@
                     </div>
                 </div>
 
+                <div class="row botton-row justify-content-center" id="button_row_1">
+                    <div class="col-md-4 col-lg-4">
+                    </div>
+                    <div class="col-md-4 col-lg-4">
+                        <div class='button-container' id="confirm_button_container_1">
+                            <button class="hidden_buttons confirm-button" onclick="sendConfirm(1)" style="display: none" id="confirm_button_1" disabled>confirm</button>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-lg-3">
+                    </div>
+                </div>
 
                 <div class="row avatar-row justify-content-center" id="avatars_row_2">
                     <div class="col-md-2 col-lg-2">
-                            <a href="#" id="player_2_avatar_link">
-                                <img id="avatar2_img" src="{% static avatar2 %}">
-                            </a>
+                        <a href="#" onclick="sendSelect(2)" id="player_2_avatar_link">
+                            <img id="avatar2_img" src="{% static avatar2 %}">
+                        </a>
                     </div>
                     <div class="col-md-6 col-lg-6">
                     </div>
                     <div class="col-md-1 col-lg-2">
-                            <a href="#" id="player_6_avatar_link">
-                                <img id="avatar6_img" src="{% static avatar6 %}">
-                            </a>
+                        <a href="#" onclick="sendSelect(6)" id="player_6_avatar_link">
+                            <img id="avatar6_img" src="{% static avatar6 %}">
+                        </a>
                     </div>
                 </div>
 
@@ -67,16 +78,31 @@
                     </div>
                 </div>
 
+                <div class="row button-row justify-content-center" id="button_row_2">
+                    <div class="col-md-2 col-lg-2">
+                        <div class='button-container' id="confirm_button_container_2">
+                            <button class="hidden_buttons confirm-button" onclick="sendConfirm(2)" style="display: none" id="confirm_button_2" disabled>confirm</button>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-lg-6">
+                    </div>
+                    <div class="col-md-1 col-lg-2">
+                        <div class='button-container' id="confirm_button_container_6">
+                            <button class="hidden_buttons confirm-button" onclick="sendConfirm(6)" style="display: none" id="confirm_button_6" disabled>confirm</button>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="row avatar-row justify-content-center" id="avatars_row_3">
                     <div class="col-md-2 col-lg-2">
-                        <a href="#" id="player_3_avatar">
+                        <a href="#" onclick="sendSelect(3)" id="player_3_avatar">
                             <img id="avatar3_img" src="{% static avatar3 %}">
                         </a>
                     </div>
                     <div class="col-md-6 col-lg-6">
                     </div>
                     <div class="col-md-2 col-lg-2">
-                        <a href="#" id="player_5_avatar_link">
+                        <a href="#" onclick="sendSelect(5)" id="player_5_avatar_link">
                             <img id="avatar5_img" src="{% static avatar5 %}">
                         </a>
                     </div>
@@ -95,11 +121,27 @@
                 </div>
 
 
+                <div class="row button-row justify-content-center" id="button_row_3">
+                    <div class="col-md-2 col-lg-2">
+                        <div class='button-container' id="confirm_button_container_3">
+                            <button class="hidden_buttons confirm-button" onclick="sendConfirm(3)" style="display: none" id="confirm_button_3" disabled>confirm</button>
+                        </div>
+                    </div>
+                    <div class="col-md-4 col-lg-6">
+                    </div>
+                    <div class="col-md-2 col-lg-2">
+                        <div class='button-container' id="confirm_button_container_5">
+                            <button class="hidden_buttons confirm-button" onclick="sendConfirm(5)" style="display: none" id="confirm_button_5" disabled>confirm</button>
+                        </div>
+                    </div>
+                </div>
+
+
                 <div class="row avatar-row justify-content-center" id="avatars_row_4">
                     <div class="col-md-3 col-lg-3">
                     </div>
                     <div class="col-md-4 col-lg-4">
-                        <a href="#" id="player_4_avatar_link">
+                        <a href="#" onclick="sendSelect(4)" id="player_4_avatar_link">
                             <img id="avatar4_img" src="{% static avatar4 %}">
                         </a>
                     </div>
@@ -112,6 +154,18 @@
                     </div>
                     <div class="col-md-4 col-lg-4">
                         <div class="username" id="player_4_name"> {{num4}} {{username4}}</div>
+                    </div>
+                    <div class="col-md-3 col-lg-3">
+                    </div>
+                </div>
+
+                <div class="row button-row justify-content-center" id="button_row_4">
+                    <div class="col-md-4 col-lg-4">
+                    </div>
+                    <div class="col-md-4 col-lg-4">
+                        <div class='button-container' id="confirm_button_container_4">
+                            <button class="hidden_buttons confirm-button" onclick="sendConfirm(4)" style="display: none" id="confirm_button_4" disabled>confirm</button>
+                        </div>
                     </div>
                     <div class="col-md-3 col-lg-3">
                     </div>

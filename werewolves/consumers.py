@@ -95,7 +95,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             # check what is the game status and the message sender role to decide which group to send
             status = await database_sync_to_async(self.get_game_status)()
             # if werewolves are killing people, the messages that they send should be seen among themselves
-            if status.step == "WOLF" and role == "WOLF":
+            if status.step == role:
                 await self.channel_layer.group_send(
                     # self.room_group_name,
                     self.wolves_group,
@@ -153,6 +153,29 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 {
                     'type': 'system_message',
                     'group': 'guard',
+                }
+            )
+        elif message_type == 'select-message':
+            target_id = text_data_json['id']
+            await self.channel_layer.group_send(
+                # self.room_group_name,
+                self.general_group,
+                {
+                    'type': 'select_message',
+                    'target_id': target_id,
+                }
+            )
+        elif message_type == 'confirm-message':
+            target_id = text_data_json['target']
+            await database_sync_to_async(self.update_status)(target_id=target_id)
+            await database_sync_to_async(self.next_step)()
+            # TODO send different system message to tell different players who is selected
+            await self.channel_layer.group_send(
+                # self.room_group_name,
+                self.general_group,
+                {
+                    'type': 'confirm_message',
+                    'target_id': target_id,
                 }
             )
 
@@ -393,7 +416,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
         print(f'all_players {all_players}')
         # TODO: Change later to len(arr)
         for i in range(len(all_players)):
-            print(f'current player {all_players[i]}')
             if arr[i] == 0 or arr[i] == 1:
                 all_players[i].role = "VILLAGER"
             elif arr[i] == 2 or arr[i] == 3:
@@ -526,3 +548,27 @@ class ChatConsumer(AsyncWebsocketConsumer):
     #Used to get the most recent game status
     def get_game_status(self):
         return GameStatus.objects.last()
+
+    # Used to get the current player's role
+    def get_current_player_role(self):
+        role = Player.objects.get(user=self.scope['user']).role
+        return role
+
+    async def select_message(self, event):
+        status = await database_sync_to_async(self.get_game_status)()
+        status = status.step
+        role = await database_sync_to_async(self.get_current_player_role)()
+        target_id = event['target_id']
+        await self.send(text_data=json.dumps({
+            'message-type': 'select_message',
+            'role': role,
+            'status':status,
+            'target_id': target_id,
+        }))
+
+    async def confirm_message(self, event):
+        id = event['target_id']
+        await self.send(text_data=json.dumps({
+            'message-type': 'confirm_message',
+            'target_id': id
+        }))
