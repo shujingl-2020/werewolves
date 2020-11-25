@@ -11,15 +11,48 @@ var chatSocket = new WebSocket(
  */
 chatSocket.onmessage = function(e) {
     var data = JSON.parse(e.data)
+
     let message_type = data['message-type']
     let message = data['message']
     let username = data['username']
-    if (message_type === 'chat_message') {
+
+    if (message_type === 'players_message') {
+        playerMessage(data)
+    }
+    else if (message_type === 'start_game_message') {
+        startGame()
+    }
+    else if (message_type === 'system_message') {
+        addSystemMessage(message)
+    }
+    else if (message_type === 'chat_message') {
         username = data['username']
         id = data['id']
         sanitize(message)
         addMessage(message, username, id)
-    } else if (message_type === 'players_message') {
+    }
+    else if (message_type === 'select_message') {
+        let target_id = data['target_id']
+        let role = data['role']
+        let status = data['status']
+//        console.log(`player role ${role}`)
+//        console.log(`current status ${status}`)
+        if (role === status || status === 'VOTE') {
+             selectPlayer(target_id)
+        }
+    }
+    else if (message_type === 'confirm_message') {
+         updateCanvas()
+    }
+    else if (message_type === 'exit_game_message') {
+        endGame()
+    }
+}
+
+/**
+moduralized player message part of in message function
+**/
+function playerMessage(data) {
         // Update number of players on the page
         let player_count = document.getElementById('id_player_num')
         player_count.innerHTML = message + ' / 6' // TODO: Change to ' / 6' later
@@ -44,72 +77,13 @@ chatSocket.onmessage = function(e) {
         player_joined.innerHTML = player_name + ' joined'
 
         let start_button = document.getElementById('id_start_game_button')
-        // Show start button only for the first joined player
-//        if (message === 1) {
+//         Show start button only for the first joined player
+        if (message === 1) {
             start_button.style.visibility = 'visible'
-//        }
-        // Enable start button for the first player when we have two players in the game
-//        if (message === 2 && start_button.style.visibility === 'visible') {
-            start_button.disabled = false
-//        }
-     } else if (message_type === 'start_game_message') {
-        startGame()
-    } else if (message_type === 'exit_game_message') {
-        endGame()
-    } else if (message_type === 'system_message') {
-        addSystemMessage(message)
-    }  else if (message_type === 'select_message') {
-        let target_id = data['target_id']
-        let role = data['role']
-        let status = data['status']
-        console.log(`player role ${role}`)
-        console.log(`current status ${status}`)
-        if (role === status || status === 'VOTE') {
-             selectPlayer(target_id)
         }
-    } else if (message_type === 'confirm_message') {
-        updateCanvas()
-    }
-}
-
-function sendJoin() {
-    if (chatSocket.readyState === 1) {
-        chatSocket.send(JSON.stringify({
-            'type': 'join-message',
-            'message': 'Join',
-        }))
-    }
-}
-
-function distributeCard() {
-    chatSocket.send(JSON.stringify({
-        'type': 'distribute-card-message',
-        'message': 'Distribute Card',
-    }))
-}
-
-function joinGame() {
-    chatSocket.send(JSON.stringify({
-        'type': 'start-game-message'
-    }))
-}
-
-function exitGame() {
-    chatSocket.send(JSON.stringify({
-        'type': 'exit-game-message'
-    }))
-}
-
-function startGame() {
-    let start_button = document.getElementById('id_start_game_hidden_button')
-    start_button.disabled = false
-    start_button.click()
-}
-
-function endGame() {
-    let end_button = document.getElementById('id_end_game_button')
-    end_button.disabled = false
-    end_button.click()
+         //Enable start button for the first player when we have two players in the game
+        if (message === 2 && start_button.style.visibility === 'visible') {
+            start_button.disabled = false
 }
 
 /**
@@ -120,14 +94,43 @@ chatSocket.onclose = function(e) {
 }
 
 /**
- * sanitize input text
- */
-function sanitize(s) {
-    // Be sure to replace ampersand first
-    return s.replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;')
+triggered when the player enters the waiting room page
+**/
+function sendJoin() {
+    if (chatSocket.readyState === 1) {
+        chatSocket.send(JSON.stringify({
+            'type': 'join-message',
+            'message': 'Join',
+        }))
+    }
+}
+
+/**
+triggered when the player clicks on the start button
+**/
+function sendStart() {
+    chatSocket.send(JSON.stringify({
+        'type': 'start-game-message'
+    }))
+}
+
+/**
+enter the game page
+**/
+function startGame() {
+    let start_button = document.getElementById('id_start_game_hidden_button')
+    start_button.disabled = false
+    start_button.click()
+}
+
+/**
+Shujing: not sure when is this triggered?
+**/
+function distributeCard() {
+    chatSocket.send(JSON.stringify({
+        'type': 'distribute-card-message',
+        'message': 'Distribute Card',
+    }))
 }
 
 /**
@@ -143,6 +146,18 @@ function sendMessage() {
         'message': message
     }))
     messageInputDom.value = '';
+}
+
+
+/**
+ * sanitize input text
+ */
+function sanitize(s) {
+    // Be sure to replace ampersand first
+    return s.replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
 }
 
 
@@ -191,28 +206,28 @@ function addSystemMessage(message) {
         )
     }
 }
-/**
- * send target id to update game status
- * gatme status will be update depends on the step
- * target includes:
- *      wolves target,
- *      seer target,
- *      guard target,
- *      vote target,
- *
- */
-function updateGameStatus() {
-    chatSocket.send(JSON.stringify({
-        'type': 'system-message',
-        'update': 'update',
-        'target_id': 1, /* should be the target id we choose, here for testing */
-    }))
-}
+
+// Shujing: I implemented this in sendConfirm function, not sure if we should still include this function
+// * send target id to update game status
+// * game status will be update depends on the step
+// * target includes:
+// *      wolves target,
+// *      seer target,
+// *      guard target,
+// *      vote target,
+// *
+// */
+//function updateGameStatus() {
+//    chatSocket.send(JSON.stringify({
+//        'type': 'system-message',
+//        'update': 'update',
+//        'target_id': 1, /* should be the target id we choose, here for testing */
+//    }))
+//}
 
 /**
  * update the next step in game procedure. send request to the websocket
  */
-
 function nextStep() {
     /* send from websocket */
     //updateGameStatus()
@@ -223,7 +238,8 @@ function nextStep() {
 }
 
 /**
-need to know the current player role and game status for the select player function to work
+triggered when the player selects an avatar
+need to know the current player role and game status for the confirm button to show
 **/
 function sendSelect(id) {
     id = String(id)
@@ -234,7 +250,7 @@ function sendSelect(id) {
 }
 
 /**
-add a confirm button if a person is selected and remove other already added buttons
+make the confirm button visible if a player is selected and make all other buttons invisible
 **/
 function selectPlayer(id) {
    for (let i = 1; i <= 6; i++) {
@@ -247,14 +263,14 @@ function selectPlayer(id) {
         }
    }
    var currentButton = document.getElementById('confirm_button_' + String(id))
-   console.log(`button ${currentButton.style.display}`)
    currentButton.style.display ='block'
-   console.log(`button after clicked ${currentButton.style.visibility}`)
    currentButton.disabled = false
-   console.log(`button after clicked enable ${currentButton.disabled}`)
 }
 
-//confirm a target
+/**
+triggered when the player clicks on a confrim button
+update game status in consumers.py
+**/
 function sendConfirm(target_id) {
     console.log('in send confirm')
     id = String(target_id)
@@ -264,10 +280,27 @@ function sendConfirm(target_id) {
     }))
 }
 
-//remove all players buttons and update the canvas
+/**
+after updating game status in consumers.py, we should remove the confirm buttons on the page
+**/
 function updateCanvas() {
+    // as for werewolves, they may have selected different targets,  so we need to have a generic opearation
     var elements = document.getElementsByClassName('confirm-button');
     while(elements.length > 0){
         elements[0].parentNode.removeChild(elements[0]);
     }
+}
+
+
+function exitGame() {
+    chatSocket.send(JSON.stringify({
+        'type': 'exit-game-message'
+    }))
+}
+
+
+function endGame() {
+    let end_button = document.getElementById('id_end_game_button')
+    end_button.disabled = false
+    end_button.click()
 }

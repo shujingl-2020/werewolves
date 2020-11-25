@@ -31,7 +31,7 @@ def start_game_action(request):
     print("in start game action")
     context = {}
     context['identity'] = currentPlayer.role
-    # get all the players, so that front end can update the canvase accordingly
+    # get all the players, so that front end can update the canvas avatars accordingly
     # get the number and username of all the players
     # to avoid the situation when the player id is random in the database, we will manually create id
     players = Player.objects.all()
@@ -47,7 +47,7 @@ def start_game_action(request):
                 context['avatar'+ str(id)] = "werewolves/images/good_avatar.png"
             # print(f'player username {player.user.username}  id in game {player.id_in_game}')
             player.save()
-            print(f'assigned id  {player}')
+            print(f'assigned {player}')
         id += 1
     # show different avatars
     return render(request, 'werewolves/game.html', context)
