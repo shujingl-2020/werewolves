@@ -293,14 +293,14 @@ function updateCanvas() {
 }
 
 
-function exitGame() {
-    chatSocket.send(JSON.stringify({
-        'type': 'exit-game-message'
-    }))
-}
-
-function endGame() {
-    let end_button = document.getElementById('id_end_game_button')
-    end_button.disabled = false
-    end_button.click()
-}
+//function exitGame() {
+//    chatSocket.send(JSON.stringify({
+//        'type': 'exit-game-message'
+//    }))
+//}
+//
+//function endGame() {
+//    let end_button = document.getElementById('id_end_game_button')
+//    end_button.disabled = false
+//    end_button.click()
+//}

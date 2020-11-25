@@ -94,6 +94,9 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
         # Get the current number of players in the database
         num_players = await database_sync_to_async(self.get_num_players)()
+        players = await database_sync_to_async(self.get_all_players)()
+        print("in receive join")
+        print(f'players {players}')
         # TODO: Change later to <= 6
         if num_players > 0:
             await self.channel_layer.group_send(
@@ -107,7 +110,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     # start game message
     async def receiveStartGameMessage(self):
-         await database_sync_to_async(self.assign_roles)()
+         await database_sync_to_async(self.assign_roles_and_ids)()
          await self.channel_layer.group_send(
              # self.room_group_name,
              self.general_group,
@@ -241,6 +244,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
         }))
 
     async def start_game_message(self, event):
+        players = await database_sync_to_async(self.get_all_players)()
+        print(f'in start game message: current players{players}')
         await self.send(text_data=json.dumps({
             'message-type': 'start_game_message',
         }))
@@ -309,7 +314,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             new_player = Player(user=user)
             new_player.save()
 
-    def assign_roles(self):
+    def assign_roles_and_ids(self):
         print("in assign roles")
         arr = [0, 1, 2, 3, 4, 5]
         random.shuffle(arr)
@@ -325,6 +330,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 all_players[i].role = "SEER"
             elif arr[i] == 5:
                 all_players[i].role = "GUARD"
+            all_players[i].id_in_game = i + 1
             all_players[i].save()
 
     def get_num_players(self):
@@ -343,8 +349,9 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     def delete_current_player(self):
         current_user   = self.scope["user"]
-        current_player = Player.objects.filter(user=current_user)[0]
-        current_player.delete()
+        current_player = Player.objects.get(user=current_user)
+        if current_player:
+            current_player.delete()
 
     def clear_players(self):
         Player.objects.all().delete()
