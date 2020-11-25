@@ -11,6 +11,12 @@ from werewolves.forms import LoginForm, RegisterForm
 from werewolves.models import Player
 
 @login_required
+def rulespage_action(request):
+    if request.method == 'GET':
+        context = {}
+        return render(request, 'werewolves/rules.html', context)
+
+@login_required
 @ensure_csrf_cookie
 def waitingroom_action(request):
     if request.method == 'GET':
@@ -46,7 +52,7 @@ def login_action(request):
 
     login(request, new_user)
 
-    return redirect(reverse('waitingroom'))
+    return redirect(reverse('rules'))
 
 
 def logout_action(request):

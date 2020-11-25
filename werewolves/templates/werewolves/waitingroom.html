@@ -5,7 +5,7 @@
 {% endblock %}
 
 {% block content %}
-<a href="{% url 'login' %}" class="log-out" id="id_logout">Exit the Game</a>
+<a href="{% url 'login' %}" class="log-out" id="id_logout" onclick="exitGame()">Exit the Game</a>
 <div class="players">
     <div class="players_label"> Players: </div><br>
     <ul class="player-list" id="id_player_list">
@@ -24,12 +24,17 @@
         <button class="hidden_buttons" style="display: none" id="id_start_game_hidden_button" disabled> Start</button>
         <span id="error" class="error"></span>
     </form>
+    <form method="get" action="{% url 'rules' %}">
+        <button class="buttons" style="visibility: hidden" id="id_end_game_button" disabled>End Game</button>
+        <span id="error" class="error"></span>
+    </form>
 </div>
 
 </section>
 
 <script>
     window.setTimeout(sendJoin, 5000)
+    window.onbeforeunload = exitGame
 </script>
 
 {% endblock %}

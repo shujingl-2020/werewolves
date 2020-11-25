@@ -49,9 +49,10 @@ class Player(models.Model):
     vote     = models.ForeignKey('self', on_delete=models.CASCADE, related_name='voted', null=True)
     # TODO: Tentative field, indicate whether a player is making a speech or not
     speech   = models.BooleanField(default=False)
+    
 
     def __str__(self):
-        return 'Player ' + self.role
+        return 'Player ' + str(self.id)
 
 
 class Message(models.Model):

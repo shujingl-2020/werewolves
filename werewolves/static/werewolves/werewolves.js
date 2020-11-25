@@ -54,6 +54,8 @@ chatSocket.onmessage = function(e) {
         }
      } else if (message_type === 'start_game_message') {
         startGame()
+    } else if (message_type === 'exit_game_message') {
+        endGame()
     } else if (message_type === 'system_message') {
         addSystemMessage(message)
     }
@@ -81,10 +83,22 @@ function joinGame() {
     }))
 }
 
+function exitGame() {
+    chatSocket.send(JSON.stringify({
+        'type': 'exit-game-message'
+    }))
+}
+
 function startGame() {
     let start_button = document.getElementById('id_start_game_hidden_button')
     start_button.disabled = false
     start_button.click()
+}
+
+function endGame() {
+    let end_button = document.getElementById('id_end_game_button')
+    end_button.disabled = false
+    end_button.click()
 }
 
 /**
