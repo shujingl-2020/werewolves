@@ -6,6 +6,7 @@ get-pip.py
 
 # Django's SQL Lite Database File
 db.sqlite3
+db 2.sqlite3
 
 # Django generated migrations
 0*.py
@@ -15,6 +16,7 @@ db.sqlite3
 # Virtual Environments, IDE, Editor backup files
 venv
 my_env
+new_env
 *~
 *#
 .idea
