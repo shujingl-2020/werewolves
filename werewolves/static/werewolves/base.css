@@ -156,7 +156,14 @@ img {
 
 .username {
   font-size: 15px;
+}
 
+#identity {
+   text-align: left;
+}
+
+.avatar-row {
+   margin-bottom: 10px;
 }
 
 .message-time {

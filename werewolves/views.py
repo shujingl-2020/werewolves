@@ -18,12 +18,32 @@ def waitingroom_action(request):
         return render(request, 'werewolves/waitingroom.html', context)
 
 @login_required
+@ensure_csrf_cookie
 def start_game_action(request):
-    # player = Player.objects.filter(user=request.user)
-    # print(player)
-    # context = {'identity': player[0].role}
+    # get the role of the current player
+    currentPlayer = Player.objects.get(user=request.user)
+    print("in start game action")
     context = {}
+    context['identity'] = currentPlayer.role
+    # get all the players, so that front end can update the canvase accordingly
+    # get the number and username of all the players
+    # to avoid the situation when the player id is random in the database, we will manually create id
+    players = Player.objects.all()
+    id = 1
+    for player in players:
+        if id <= 6:
+            context['num' + str(id)] = id
+            context['username' + str(id)] = player.user.username
+            player.id_in_game = id
+            if currentPlayer.role == "WOLF" and player.role == "WOLF":
+                context['avatar'+ str(id)] = "werewolves/images/bad_avatar.png"
+            else:
+                context['avatar'+ str(id)] = "werewolves/images/good_avatar.png"
+            # print(f'player username {player.user.username}  id in game {player.id_in_game}')
+        id += 1
+    # show different avatars
     return render(request, 'werewolves/game.html', context)
+
 
 def login_action(request):
     context = {}

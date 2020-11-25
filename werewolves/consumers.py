@@ -50,6 +50,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
             self.channel_name
         )
 
+        # await database_sync_to_async(self.clear_players)()
+
         self.close()
 
     # Receive message from WebSocket
@@ -154,8 +156,29 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 }
             )
 
-    # Receive message from room group
+    '''join waiting room feature'''
 
+    async def players_message(self, event):
+        message = event['message']
+        # Get an array of all players
+        all_players = await database_sync_to_async(self.get_all_players)()
+        last_player = await database_sync_to_async(self.get_last_joined_player)()
+        # Send message to WebSocket
+        await self.send(text_data=json.dumps({
+            'message-type': 'players_message',
+            'last_player': last_player,
+            'players': all_players,
+            'message': message
+        }))
+
+    async def start_game_message(self, event):
+        await self.send(text_data=json.dumps({
+            'message-type': 'start_game_message',
+        }))
+
+
+    '''chat message feature'''
+    # Receive message from room group
     async def chat_message(self, event):
         type = event['type']
         message = event['message']
@@ -189,27 +212,9 @@ class ChatConsumer(AsyncWebsocketConsumer):
         return (id, username, role)
 
 
-    async def players_message(self, event):
-        message = event['message']
-        # Get an array of all players
-        all_players = await database_sync_to_async(self.get_all_players)()
-        last_player = await database_sync_to_async(self.get_last_joined_player)()
-        # Send message to WebSocket
-        await self.send(text_data=json.dumps({
-            'message-type': 'players_message',
-            'last_player': last_player,
-            'players': all_players,
-            'message': message
-        }))
+    '''update game status feature'''
 
-    async def start_game_message(self, event):
-        await self.send(text_data=json.dumps({
-            'message-type': 'start_game_message'
-        }))
-
-    #
     # update target field in GameStatus
-    #
     def update_status(self, target_id):
         print(target_id)
         game = GameStatus.objects.last()
@@ -263,9 +268,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
         new_status.save()
 
-    #
+
     #   Update next step
-    #
     def next_step(self):
         game = GameStatus.objects.last()
         new_status = GameStatus()
@@ -308,7 +312,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
         new_status.save()
 
-    #
+
+    ''' system message feature'''
     #   send system_message based on groups and steps
     #   groups include:
     #       general group,
@@ -381,11 +386,14 @@ class ChatConsumer(AsyncWebsocketConsumer):
             new_player.save()
 
     def assign_roles(self):
+        print("in assign roles")
         arr = [0, 1, 2, 3, 4, 5]
         random.shuffle(arr)
         all_players = Player.objects.all()
+        print(f'all_players {all_players}')
         # TODO: Change later to len(arr)
         for i in range(len(all_players)):
+            print(f'current player {all_players[i]}')
             if arr[i] == 0 or arr[i] == 1:
                 all_players[i].role = "VILLAGER"
             elif arr[i] == 2 or arr[i] == 3:

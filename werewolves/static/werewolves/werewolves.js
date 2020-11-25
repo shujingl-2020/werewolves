@@ -22,7 +22,7 @@ chatSocket.onmessage = function(e) {
     } else if (message_type === 'players_message') {
         // Update number of players on the page
         let player_count = document.getElementById('id_player_num')
-        player_count.innerHTML = message + ' / 2' // TODO: Change to ' / 6' later
+        player_count.innerHTML = message + ' / 6' // TODO: Change to ' / 6' later
 
         // Update list of player names on the page
         let all_players = data['players']
@@ -45,16 +45,16 @@ chatSocket.onmessage = function(e) {
 
         let start_button = document.getElementById('id_start_game_button')
         // Show start button only for the first joined player
-        if (message === 1) {
+//        if (message === 1) {
             start_button.style.visibility = 'visible'
-        }
+//        }
         // Enable start button for the first player when we have two players in the game 
-        if (message === 2 && start_button.style.visibility === 'visible') {
+//        if (message === 2 && start_button.style.visibility === 'visible') {
             start_button.disabled = false
-        }
+//        }
      } else if (message_type === 'start_game_message') {
         startGame()
-    } else if (message_type === 'system_message') {
+    }  else if (message_type === 'system_message') {
         addSystemMessage(message)
     }
 }
@@ -119,6 +119,8 @@ function sendMessage() {
     }))
     messageInputDom.value = '';
 }
+
+
 /**
  * add the new message at the bottom of the chat box
  * need future update

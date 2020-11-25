@@ -19,9 +19,10 @@
 </div>
 
 <div>
-    <button class="buttons" style="visibility: hidden" id="id_start_game_button" disabled onclick="joinGame()"> Start</button>
-    <form method="get" action="{% url 'game' %}">
-        <button class="hidden_buttons" style="display: none" id="id_start_game_hidden_button" disabled> Start</button>
+    <button class="buttons" style="visibility: hidden" id="id_start_game_button" disabled onclick="joinGame()">Start</button>
+    <form method="post" action="{% url 'game' %}">
+       {% csrf_token %}
+        <button class="hidden_buttons"  style="display: none" id="id_start_game_hidden_button" enabled> Start</button>
         <span id="error" class="error"></span>
     </form>
 </div>
