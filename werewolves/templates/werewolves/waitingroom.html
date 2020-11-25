@@ -21,7 +21,7 @@
 <div>
     <form method="post" action="{% url 'game' %}">
        {% csrf_token %}
-        <button class="hidden_buttons" style="visibility: hidden" onclick="sendStart()" id="id_start_game_hidden_button" disabled>Start</button>
+        <button class="hidden_buttons buttons" style="visibility: hidden" onclick="sendStart()" id="id_start_game_hidden_button" disabled>Start</button>
         <span id="error" class="error"></span>
     </form>
 </div>

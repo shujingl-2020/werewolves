@@ -21,7 +21,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
             self.channel_name
         )
 
-
         # Put all players in the general group
         await self.channel_layer.group_add(
             self.general_group,
@@ -69,35 +68,155 @@ class ChatConsumer(AsyncWebsocketConsumer):
         message_type = text_data_json['type']
         #print("in receive")
         if message_type == 'join-message':
-            # When we receive a request, create a new player in the database
-            await database_sync_to_async(self.create_player)()
-
-            # TODO: should be put after assigned players role, here for testing
-            await database_sync_to_async(self.init_game_status)()
-
-            # Get the current number of players in the database
-            num_players = await database_sync_to_async(self.get_num_players)()
-            # TODO: Change later to <= 6
-            if num_players > 0:
-                await self.channel_layer.group_send(
-                    # self.room_group_name,
-                    self.general_group,
-                    {
-                        'type': 'players_message',
-                        'message': num_players
-                    }
-                )
+            await self.receiveJoinMessage()
         elif message_type == 'start-game-message':
-            await database_sync_to_async(self.assign_roles)()
+            await self.receiveStartGameMessage()
+        elif message_type == 'system-message':
+            await self.receiveSystemMessage(text_data_json)
+        elif message_type == 'chat-message':
+            await self.receiveChatMessage(text_data_json)
+        elif message_type == 'select-message':
+            await  self.receiveSelectMessage(text_data_json)
+        elif message_type == 'confirm-message':
+            await  self.receiveConfirmMessage(text_data_json)
+        elif message_type == 'exit-game-message':
+            await  self.receiveExitGameMessage()
+
+    """moduralized received messaages"""
+    # join message
+    async def receiveJoinMessage(self):
+        print()
+        # When we receive a request, create a new player in the database
+        await database_sync_to_async(self.create_player)()
+
+        # TODO: should be put after assigned players role, here for testing
+        await database_sync_to_async(self.init_game_status)()
+
+        # Get the current number of players in the database
+        num_players = await database_sync_to_async(self.get_num_players)()
+        # TODO: Change later to <= 6
+        if num_players > 0:
             await self.channel_layer.group_send(
                 # self.room_group_name,
                 self.general_group,
                 {
-                    'type': 'start_game_message',
-                    'message': 'start_game'
+                    'type': 'players_message',
+                    'message': num_players
                 }
             )
-        elif message_type == 'exit-game-message':
+
+    # start game message
+    async def receiveStartGameMessage(self):
+         await database_sync_to_async(self.assign_roles)()
+         await self.channel_layer.group_send(
+             # self.room_group_name,
+             self.general_group,
+             {
+                 'type': 'start_game_message',
+                 'message': 'start_game'
+             }
+         )
+
+    #system message
+    async def receiveSystemMessage(self, data):
+        update = data['update']
+        if update == 'update':
+            target_id = data['target_id']
+            await database_sync_to_async(self.update_status)(target_id=target_id)
+        elif update == 'next_step':
+            await database_sync_to_async(self.next_step)()
+        # Send system message to different groups
+        await self.channel_layer.group_send(
+            self.general_group,
+            {
+                'type': 'system_message',
+                'group': 'general',
+            }
+        )
+        await self.channel_layer.group_send(
+            self.seer_group,
+            {
+                'type': 'system_message',
+                'group': 'seer',
+            }
+        )
+        await self.channel_layer.group_send(
+            self.wolves_group,
+            {
+                'type': 'system_message',
+                'group': 'wolves',
+            }
+        )
+        await self.channel_layer.group_send(
+            self.guard_group,
+            {
+                'type': 'system_message',
+                'group': 'guard',
+            }
+        )
+
+    #chat message
+    async def receiveChatMessage(self, data):
+        message = data['message']
+        await database_sync_to_async(self.create_message)(message)
+        id, username, role = await database_sync_to_async(self.get_last_message)()
+        # check what is the game status and the message sender role to decide which group to send
+        status = await database_sync_to_async(self.get_game_status)()
+        # if werewolves are killing people, the messages that they send should be seen among themselves
+        if status.step == role:
+            await self.channel_layer.group_send(
+                # self.room_group_name,
+                self.wolves_group,
+                {
+                    'type': 'chat_message',
+                    'message': message,
+                    'id': id,
+                    'username': username,
+                }
+            )
+        # Send message to room group
+        # Send all messages in the data base to the room group
+        else:
+            await self.channel_layer.group_send(
+                # self.room_group_name,
+                self.general_group,
+                {
+                    'type': 'chat_message',
+                    'message': message,
+                    'id': id,
+                    'username': username,
+                }
+            )
+
+    #select target message
+    async def receiveSelectMessage(self, data):
+        target_id = data['id']
+        await self.channel_layer.group_send(
+            # self.room_group_name,
+            self.general_group,
+            {
+                'type': 'select_message',
+                'target_id': target_id,
+            }
+        )
+
+    # confirm target message
+    async def receiveConfirmMessage(self, data):
+        target_id = data['target']
+        await database_sync_to_async(self.update_status)(target_id=target_id)
+        await database_sync_to_async(self.next_step)()
+        # TODO send different system message to tell different players who is selected
+        await self.channel_layer.group_send(
+            # self.room_group_name,
+            self.general_group,
+            {
+                'type': 'confirm_message',
+                'target_id': target_id,
+            }
+        )
+
+    # exit game message
+    async def receiveExitGameMessage(self):
             await database_sync_to_async(self.delete_current_player)()
             await self.channel_layer.group_send(
                 self.general_group,
@@ -106,99 +225,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     'message': 'exit_game'
                 }
             )
-        elif message_type == 'chat-message':
-            message = text_data_json['message']
-            await database_sync_to_async(self.create_message)(message)
-            id, username, role =  await database_sync_to_async(self.get_last_message)()
-            # check what is the game status and the message sender role to decide which group to send
-            status = await database_sync_to_async(self.get_game_status)()
-            # if werewolves are killing people, the messages that they send should be seen among themselves
-            if status.step == role:
-                await self.channel_layer.group_send(
-                    # self.room_group_name,
-                    self.wolves_group,
-                    {
-                        'type': 'chat_message',
-                        'message': message,
-                        'id': id,
-                        'username': username,
-                    }
-                )
-            # Send message to room group
-            # Send all messages in the data base to the room group
-            else:
-                await self.channel_layer.group_send(
-                    #self.room_group_name,
-                    self.general_group,
-                    {
-                        'type': 'chat_message',
-                        'message': message,
-                        'id': id,
-                        'username': username,
-                    }
-                )
-        elif message_type == 'system-message':
-            update = text_data_json['update']
-            if update == 'update':
-                target_id = text_data_json['target_id']
-                await database_sync_to_async(self.update_status)(target_id=target_id)
-            elif update == 'next_step':
-                await database_sync_to_async(self.next_step)()
-            # Send system message to different groups
-            await self.channel_layer.group_send(
-                self.general_group,
-                {
-                    'type': 'system_message',
-                    'group': 'general',
-                }
-            )
-            await self.channel_layer.group_send(
-                self.seer_group,
-                {
-                    'type': 'system_message',
-                    'group': 'seer',
-                }
-            )
-            await self.channel_layer.group_send(
-                self.wolves_group,
-                {
-                    'type': 'system_message',
-                    'group': 'wolves',
-                }
-            )
-            await self.channel_layer.group_send(
-                self.guard_group,
-                {
-                    'type': 'system_message',
-                    'group': 'guard',
-                }
-            )
-        elif message_type == 'select-message':
-            target_id = text_data_json['id']
-            await self.channel_layer.group_send(
-                # self.room_group_name,
-                self.general_group,
-                {
-                    'type': 'select_message',
-                    'target_id': target_id,
-                }
-            )
-        elif message_type == 'confirm-message':
-            target_id = text_data_json['target']
-            await database_sync_to_async(self.update_status)(target_id=target_id)
-            await database_sync_to_async(self.next_step)()
-            # TODO send different system message to tell different players who is selected
-            await self.channel_layer.group_send(
-                # self.room_group_name,
-                self.general_group,
-                {
-                    'type': 'confirm_message',
-                    'target_id': target_id,
-                }
-            )
 
     '''join waiting room feature'''
-
     async def players_message(self, event):
         message = event['message']
         # Get an array of all players
@@ -265,18 +293,90 @@ class ChatConsumer(AsyncWebsocketConsumer):
             'message': message
         }))
 
+
+    '''start game feature'''
+
     # TODO: Change broadcast audience to the first six players
     async def start_game_message(self, event):
         await self.send(text_data=json.dumps({
             'message-type': 'start_game_message'
         }))
 
-    async def exit_game_message(self, event):
-        print('exiting game')
-        await self.send(text_data=json.dumps({
-            'message-type': 'exit_game_message'
-        }))
-    #
+    def create_player(self):
+        user = self.scope["user"]
+        player = Player.objects.filter(user=user)
+        if len(player) == 0:
+            new_player = Player(user=user)
+            new_player.save()
+
+    def assign_roles(self):
+        print("in assign roles")
+        arr = [0, 1, 2, 3, 4, 5]
+        random.shuffle(arr)
+        all_players = Player.objects.all()
+        print(f'all_players {all_players}')
+        # TODO: Change later to len(arr)
+        for i in range(len(all_players)):
+            if arr[i] == 0 or arr[i] == 1:
+                all_players[i].role = "VILLAGER"
+            elif arr[i] == 2 or arr[i] == 3:
+                all_players[i].role = "WOLF"
+            elif arr[i] == 4:
+                all_players[i].role = "SEER"
+            elif arr[i] == 5:
+                all_players[i].role = "GUARD"
+            all_players[i].save()
+
+    def get_num_players(self):
+        return Player.objects.all().count()
+
+    def get_all_players(self):
+        players = Player.objects.all()
+        ret = []
+        for player in players:
+            ret.append(player.user.username)
+        return ret
+
+    def get_last_joined_player(self):
+        last_player = Player.objects.order_by('-id')[0]
+        return last_player.user.username
+
+    def delete_current_player(self):
+        current_user   = self.scope["user"]
+        current_player = Player.objects.filter(user=current_user)[0]
+        current_player.delete()
+
+    def clear_players(self):
+        Player.objects.all().delete()
+
+    # Used to initialize game_status
+    def init_game_status(self):
+        game = GameStatus()
+        game.night = False
+        game.wolves_target = None
+        game.guard_target = None
+        game.seer_target = None
+        game.vote_target = None
+        game.first_speaker = None
+        game.current_speaker = None
+        game.step = "NOT ASSIGNED"
+        game.winning = None
+        game.speech_over = None
+        game.vote_over = None
+        game.wolves = None
+        # TODO: should be set from Player.objects, only for testing
+        game.guard = None
+        game.seer = None
+        game.villagers = None
+        #game.wolves = Player.objects.filter(role = "WOLF")
+        #game.guard = Player.objects.filter(role = "GUARD")
+        #game.seer = Player.objects.filter(role = "SEER")
+        #game.villagers = Player.objects.filter(role = "VILLAGER")
+
+        game.save()
+
+
+    '''update game status feature'''
     # update target field in GameStatus
     def update_status(self, target_id):
         print(target_id)
@@ -441,80 +541,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             'message': message,
         }))
 
-    def create_player(self):
-        user = self.scope["user"]
-        player = Player.objects.filter(user=user)
-        if len(player) == 0:
-            new_player = Player(user=user)
-            new_player.save()
-
-    def assign_roles(self):
-        print("in assign roles")
-        arr = [0, 1, 2, 3, 4, 5]
-        random.shuffle(arr)
-        all_players = Player.objects.all()
-        print(f'all_players {all_players}')
-        # TODO: Change later to len(arr)
-        for i in range(len(all_players)):
-            if arr[i] == 0 or arr[i] == 1:
-                all_players[i].role = "VILLAGER"
-            elif arr[i] == 2 or arr[i] == 3:
-                all_players[i].role = "WOLF"
-            elif arr[i] == 4:
-                all_players[i].role = "SEER"
-            elif arr[i] == 5:
-                all_players[i].role = "GUARD"
-            all_players[i].save()
-
-    def get_num_players(self):
-        return Player.objects.all().count()
-
-    def get_all_players(self):
-        players = Player.objects.all()
-        ret = []
-        for player in players:
-            ret.append(player.user.username)
-        return ret
-
-    def get_last_joined_player(self):
-        last_player = Player.objects.order_by('-id')[0]
-        return last_player.user.username
-
-    def delete_current_player(self):
-        current_user   = self.scope["user"]
-        current_player = Player.objects.filter(user=current_user)[0]
-        current_player.delete()
-
-    def clear_players(self):
-        Player.objects.all().delete()
-
-    # Used to initialize game_status
-    def init_game_status(self):
-        game = GameStatus()
-        game.night = False
-        game.wolves_target = None
-        game.guard_target = None
-        game.seer_target = None
-        game.vote_target = None
-        game.first_speaker = None
-        game.current_speaker = None
-        game.step = "NOT ASSIGNED"
-        game.winning = None
-        game.speech_over = None
-        game.vote_over = None
-        game.wolves = None
-        # TODO: should be set from Player.objects, only for testing
-        game.guard = None
-        game.seer = None
-        game.villagers = None
-        #game.wolves = Player.objects.filter(role = "WOLF")
-        #game.guard = Player.objects.filter(role = "GUARD")
-        #game.seer = Player.objects.filter(role = "SEER")
-        #game.villagers = Player.objects.filter(role = "VILLAGER")
-
-        game.save()
-
-    #   get the next alive speaker.
+    #  get the next alive speaker.
     # TODO: the first player killed at night should also be counted. debug needed
     # param(in): id: the current speaker, need to find the next one
     # return(out): a plaer model, next availbe speaker
@@ -584,7 +611,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
     #       True: voting is over
     #       False: voting is started but not over
     #
-
     def is_end_vote(self):
         #TODO: only for testing
         return True
@@ -598,6 +624,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
     def get_current_player_role(self):
         role = Player.objects.get(user=self.scope['user']).role
         return role
+
 
     async def select_message(self, event):
         status = await database_sync_to_async(self.get_game_status)()
@@ -617,3 +644,12 @@ class ChatConsumer(AsyncWebsocketConsumer):
             'message-type': 'confirm_message',
             'target_id': id
         }))
+
+    '''exit game feature'''
+
+    async def exit_game_message(self, event):
+        print('exiting game')
+        await self.send(text_data=json.dumps({
+            'message-type': 'exit_game_message'
+        }))
+
