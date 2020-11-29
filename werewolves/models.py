@@ -22,8 +22,10 @@ class GameStep(Enum):
     ANNOUNCE = "ANNOUNCE"
     SPEECH = "SPEECH"
     VOTE = "VOTE"
+    END_NIGHT = "END_NIGHT" #update killing at night status
+    #END_KILL = "END_KILL" 
     END_SPEECH = "END_SPEECH"
-    END_VOTE = "END_VOTE"
+    END_VOTE = "END_VOTE" #annouce voting status
     END_GAME = "END_GAME"
     NONE = "NOT ASSIGNED"
 
@@ -46,7 +48,9 @@ class Player(models.Model):
     user     = models.ForeignKey(User, on_delete=models.PROTECT, related_name="player", null=True)
     role     = models.CharField(max_length=30, choices=PlayerRole.choices(), default="NONE")
     status   = models.CharField(max_length=30, choices=PlayerStatus.choices(), default="ALIVE")
-    vote     = models.ForeignKey('self', on_delete=models.CASCADE, related_name='voted', null=True)
+    #vote     = models.ForeignKey('self', on_delete=models.CASCADE, related_name='voted', null=True)
+    vote     = models.IntegerField(null=True)
+    #kill     = models.IntegerField(null=True)
     # TODO: Tentative field, indicate whether a player is making a speech or not
     speech   = models.BooleanField(default=False)
     id_in_game = models.PositiveSmallIntegerField(default=0)
@@ -78,9 +82,9 @@ class GameStatus(models.Model):
     # Indicate if the game is over, False: wolves win, True: good people win, None: game is not over
     winning         = models.BooleanField(null=True, default=None)
     # Indicate if the speech is over, False: speech started but not end True: speech end, None: speech not started
-    speech_over = models.BooleanField(null=True, default=None)
+    #speech_over = models.BooleanField(null=True, default=None)
     # Indicate if the game is over, False: vote started but not end, True: vote end, None: vote not started
-    vote_over = models.BooleanField(null=True, default=None)
+    #vote_over = models.BooleanField(null=True, default=None)
     # null means the player who got assigned the character is out.
     wolves          = models.ForeignKey(Player, on_delete=models.PROTECT, related_name="is_wolf", null=True)
     seer            = models.ForeignKey(Player, on_delete=models.PROTECT, related_name="is_seer", null=True)
