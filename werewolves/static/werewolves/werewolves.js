@@ -219,12 +219,12 @@ function addSystemMessage(message) {
 // *      vote target,
 // *
 // */
-//function updateGameStatus() {
-//    chatSocket.send(JSON.stringify({
-//        'type': 'system-message',
-//        'update': 'update',
-//        'target_id': 1, /* should be the target id we choose, here for testing */
-//    }))
+function updateGameStatus(id) {
+    chatSocket.send(JSON.stringify({
+        'type': 'system-message',
+        'update': 'update',
+        'target_id': id, /* should be the target id we choose, here for testing */
+    }))
 //}
 
 /**
@@ -276,10 +276,11 @@ update game status in consumers.py
 function sendConfirm(target_id) {
     console.log('in send confirm')
     id = String(target_id)
-    chatSocket.send(JSON.stringify({
-        'type': 'confirm-message',
-        'target': id
-    }))
+    updateGameStatus(id)
+//    chatSocket.send(JSON.stringify({
+//        'type': 'confirm-message',
+//        'target': id
+//    }))
 }
 
 /**

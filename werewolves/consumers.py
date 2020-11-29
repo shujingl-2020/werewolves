@@ -14,11 +14,11 @@ class ChatConsumer(AsyncWebsocketConsumer):
         self.seer_group = "seer_group"          # seer is in this group
         self.guard_group = "guard_group"        # guard is in this group
 
-        # print("in connect")
+        print("in connect")
         user = self.scope["user"]
-        # print("     user:", user)
+        print("     user:", user)
         role = await database_sync_to_async(self.get_current_player_role)()
-        # print("     role:", role)
+        print("     role:", role)
         # num_players = await database_sync_to_async(self.check_num_players)()
         # if num_players < 6:
         # Put all players in the general group
@@ -286,7 +286,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
         arr = [0, 1, 2, 3, 4, 5]
         random.shuffle(arr)
         all_players = Player.objects.all()
-        print(f'all_players {all_players}')
         # TODO: Change later to len(arr)
         for i in range(len(all_players)):
             if arr[i] == 0 or arr[i] == 1:
@@ -298,8 +297,9 @@ class ChatConsumer(AsyncWebsocketConsumer):
             elif arr[i] == 5:
                 all_players[i].role = "GUARD"
             all_players[i].id_in_game = i + 1
-            # print(f'all players in consumer {all_players[i]}')
             all_players[i].save()
+        print(f'all_players in assign roles in consumer {all_players}')
+
 
     def get_num_players(self):
         return Player.objects.all().count()
@@ -366,7 +366,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
     '''update game status feature'''
     # update target field in GameStatus
     def update_status(self, target_id):
-        print(target_id)
+        print(f'target_id {target_id}')
         game = GameStatus.objects.last()
         new_status = GameStatus()
         new_status = game
@@ -488,7 +488,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             new_status.step = "WOLF"
             new_status.night = False
         elif (game.step == "END_KILL"):
-            next_status.step = "GUARD"
+            new_status.step = "GUARD"
             new_status.night = False
         elif (game.step == "GUARD"):
             new_status.step = "SEER"
