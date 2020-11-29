@@ -16,18 +16,18 @@ class PlayerRole(Enum):
 
 # A game procedure has multiple steps, plus one unassigned:
 class GameStep(Enum):
-    WOLF = "WOLF"
-    SEER = "SEER"
-    GUARD = "GUARD"
-    ANNOUNCE = "ANNOUNCE"
-    SPEECH = "SPEECH"
-    VOTE = "VOTE"
-    END_NIGHT = "END_NIGHT" #update killing at night status
-    #END_KILL = "END_KILL" 
-    END_SPEECH = "END_SPEECH"
+    WOLF = "WOLF" # wolf select target
+    #END_KILL = "END_KILL" # wolf finished kill
+    GUARD = "GUARD" # guard select target
+    SEER = "SEER" # seer select target
+    #END_NIGHT = "END_NIGHT"  # update killing at night status
+    ANNOUNCE = "ANNOUNCE" # announce game status and last night killed status
+    SPEECH = "SPEECH" # every player make a speech
+    #END_SPEECH = "END_SPEECH" # end speech
+    VOTE = "VOTE" # start voting
     END_VOTE = "END_VOTE" #annouce voting status
-    END_GAME = "END_GAME"
-    END_DAY = "END_DAY"
+    END_DAY = "END_DAY" # It is night time
+    END_GAME = "END_GAME"  # Game Over
     NONE = "NOT ASSIGNED"
 
     @classmethod
@@ -51,7 +51,7 @@ class Player(models.Model):
     status   = models.CharField(max_length=30, choices=PlayerStatus.choices(), default="ALIVE")
     #vote     = models.ForeignKey('self', on_delete=models.CASCADE, related_name='voted', null=True)
     vote     = models.IntegerField(null=True)
-    #kill     = models.IntegerField(null=True)
+    kill     = models.IntegerField(null=True)
     # TODO: Tentative field, indicate whether a player is making a speech or not
     speech   = models.BooleanField(default=False)
     id_in_game = models.PositiveSmallIntegerField(default=0)
@@ -69,15 +69,25 @@ class Message(models.Model):
 
 class GameStatus(models.Model):
     # False means night, True means day.
-    night           = models.BooleanField(default=False)
+    #night           = models.BooleanField(default=False)
     # Target player's id, null means the wolves haven't decided yet.
-    wolves_target          = models.IntegerField(null=True)
-    guard_target           = models.IntegerField(null=True)
-    seer_target            = models.IntegerField(null=True)
-    vote_target            = models.IntegerField(null=True)
+    wolves_target   = models.IntegerField(null=True)
+    guard_target    = models.IntegerField(null=True)
+    seer_target     = models.IntegerField(null=True)
+    vote_target     = models.IntegerField(null=True)
+    first_speaker   = models.IntegerField(null=True)
+    current_speaker     = models.IntegerField(null=True)
+    #wolves_target = models.ForeignKey(
+    #    Player, on_delete=models.PROTECT, related_name="is_wolf_target", null=True)
+    #guard_target = models.ForeignKey(
+    #    Player, on_delete=models.PROTECT, related_name="is_guard_target", null=True)
+    #seer_target = models.ForeignKey(
+    #    Player, on_delete=models.PROTECT, related_name="is_seer_target", null=True)
+    #vote_target = models.ForeignKey(
+    #    Player, on_delete=models.PROTECT, related_name="is_vote_target", null=True)
     # Indicate which speaker is the first speaker and which is the current speaker
-    first_speaker   = models.ForeignKey(Player, on_delete=models.PROTECT, related_name="is_first_speaker", null=True)
-    current_speaker = models.ForeignKey(Player, on_delete=models.PROTECT, related_name="is_current_speaker", null=True)
+    #first_speaker   = models.ForeignKey(Player, on_delete=models.PROTECT, related_name="is_first_speaker", null=True)
+    #current_speaker = models.ForeignKey(Player, on_delete=models.PROTECT, related_name="is_current_speaker", null=True)
     # Indicate the current game step
     step = models.CharField(max_length=30, choices=GameStep.choices(), default=GameStep.NONE)
     # Indicate if the game is over, False: wolves win, True: good people win, None: game is not over

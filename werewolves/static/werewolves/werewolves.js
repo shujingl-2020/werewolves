@@ -238,7 +238,8 @@ function updateGameStatus(id) {
     chatSocket.send(JSON.stringify({
         'type': 'system-message',
         'update': 'update',
-        'target_id': id
+        'target_id': id, /* should be the target id we choose, here for testing */
+        'times_up': "False",
     }))
 }
 
@@ -250,7 +251,8 @@ function nextStep() {
     //updateGameStatus()
     chatSocket.send(JSON.stringify({
         'type': 'system-message',
-        'update': 'next_step'
+        'times_up': "False",
+        'update': 'next_step',
     }))
 }
 
