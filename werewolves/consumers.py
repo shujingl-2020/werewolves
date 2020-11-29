@@ -14,11 +14,11 @@ class ChatConsumer(AsyncWebsocketConsumer):
         self.seer_group = "seer_group"          # seer is in this group
         self.guard_group = "guard_group"        # guard is in this group
 
-        print("in connect")
+        # print("in connect")
         user = self.scope["user"]
-        print("     user:", user)
+        # print("     user:", user)
         role = await database_sync_to_async(self.get_current_player_role)()
-        print("     role:", role)
+        # print("     role:", role)
         # num_players = await database_sync_to_async(self.check_num_players)()
         # if num_players < 6:
         # Put all players in the general group
@@ -269,8 +269,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     # TODO: Change broadcast audience to the first six players
     async def start_game_message(self, event):
-        players = await database_sync_to_async(self.get_all_players)()
-        print(f'in start game message: current players{players}')
+        # players = await database_sync_to_async(self.get_all_players)()
+        # print(f'in start game message: current players{players}')
         await self.send(text_data=json.dumps({
             'message-type': 'start_game_message',
         }))
