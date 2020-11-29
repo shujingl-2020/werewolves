@@ -51,7 +51,7 @@ class Player(models.Model):
     status   = models.CharField(max_length=30, choices=PlayerStatus.choices(), default="ALIVE")
     #vote     = models.ForeignKey('self', on_delete=models.CASCADE, related_name='voted', null=True)
     vote     = models.IntegerField(null=True)
-    #kill     = models.IntegerField(null=True)
+    kill     = models.IntegerField(null=True)
     # TODO: Tentative field, indicate whether a player is making a speech or not
     speech   = models.BooleanField(default=False)
     id_in_game = models.PositiveSmallIntegerField(default=0)

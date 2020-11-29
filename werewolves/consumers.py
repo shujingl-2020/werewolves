@@ -176,33 +176,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
         # select message
         elif message_type == 'select-message':
-<<<<<<< HEAD
-            await  self.receiveSelectMessage(text_data_json)
-        elif message_type == 'confirm-message':
-            await  self.receiveConfirmMessage(text_data_json)
-        elif message_type == 'exit-game-message':
-            await  self.receiveExitGameMessage()
-
-    """moduralized received messaages"""
-    # join message
-    async def receiveJoinMessage(self):
-        #print()
-        # When we receive a request, create a new player in the database
-        await database_sync_to_async(self.create_player)()
-
-        # TODO: should be put after assigned players role, here for testing
-        await database_sync_to_async(self.init_game_status)()
-
-        # Get the current number of players in the database
-        num_players = await database_sync_to_async(self.get_num_players)()
-        players = await database_sync_to_async(self.get_all_players)()
-        print("in receive join")
-        print(f'players {players}')
-        # TODO: Change later to <= 6
-        if num_players > 0:
-=======
             target_id = text_data_json['id']
->>>>>>> 61fc84c90a9cfbd0a9e19b315f44f354de55a912
             await self.channel_layer.group_send(
                 # self.room_group_name,
                 self.general_group,
@@ -212,7 +186,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 }
             )
 
-<<<<<<< HEAD
     # start game message
     async def receiveStartGameMessage(self):
         await database_sync_to_async(self.assign_roles_and_ids)()
@@ -280,14 +253,12 @@ class ChatConsumer(AsyncWebsocketConsumer):
         status = await database_sync_to_async(self.get_game_status)()
         # if werewolves are killing people, the messages that they send should be seen among themselves
         if status.step == role:
-=======
         # confirm message
         elif message_type == 'confirm-message':
             target_id = text_data_json['target']
             await database_sync_to_async(self.update_status)(target_id=target_id)
             await database_sync_to_async(self.next_step)()
             # TODO send different system message to tell different players who is selected
->>>>>>> 61fc84c90a9cfbd0a9e19b315f44f354de55a912
             await self.channel_layer.group_send(
                 # self.room_group_name,
                 self.general_group,
@@ -461,7 +432,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     '''update game status feature'''
     # update target field in GameStatus
-    def update_status(self, target_id):
+    def update_status(self, target_id, times_up):
         print("in update_status")
         print("     target_id:", target_id)
         game = GameStatus.objects.last()
@@ -469,35 +440,25 @@ class ChatConsumer(AsyncWebsocketConsumer):
         new_status = game
         user = self.scope["user"]
         if (game.step == "WOLF"):
-            #update kill status in player model
-            '''
-            try:
-                wolf_player = Player.objects.select_for_update().filter(user=user)
-                if (wolf_player.role == "WOLF" & wolf_player.status == "ALIVE"):
-                    if (target_id == None):
-                        wolf_player.kill = 0
-                    else:
-                        wolf_player.kill = target_id
-                wolf_player.save()
-            except:
-                pass
-            #select target only when
-            try:
-                wolves = Player.objects.filter(role="WOLF")
-                i = 0
-                kill_target = None
-                for wolf in wolves:
-                    if (i == 0):
-                        kill_target = wolf.kill
-                    else:
-                        if (kill_target != wolf.kill):
-                            kill_target = None
-                            break
-                    i += 1
-                new_status.wolves_target = kill_target
+            if (times_up):
+                if (game.wolves_target == None):
+                    new_status.wolves_target = 0
                 new_status.step = "END_KILL"
-            except:
-                new_status.wolves_target = None
+            else:
+                try:
+                    wolf_player = Player.objects.select_for_update().filter(user=user)
+                    if (wolf_player.role == "WOLF" & wolf_player.status == "ALIVE"):
+                        if (target_id == None):
+                            wolf_player.kill = 0
+                        else:
+                            wolf_player.kill = target_id
+                    wolf_player.save()
+                except:
+                    pass
+                
+                new_status.wolves_target = self.valid_kill_target()
+            #update kill status in player model
+
             '''
             new_status.wolves_target = None
             #if (game.wolves != None):
@@ -513,25 +474,30 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     new_status.wolves_target = 0
                 else:
                     new_status.wolves_target = target_id
+            '''
         elif (game.step == "GUARD"):
-            if (game.guard != None):
-                new_status.guard_target = target_id
+            if (times_up):
+                if (game.guard_target == None):
+                    new_status.guard_target = 0
+                new_status.step = "SEER"
             else:
-                new_status.guard_target = None
+                new_status.guard_target = self.valid_target_id(target_id)
         elif (game.step == "SEER"):
-            if (game.seer != None):
-                new_status.seer_target = target_id
+            if (times_up):
+                if (game.seer_target == None):
+                    new_status.seer_target = 0
+                new_status.step = "END_NIGHT"
             else:
-                new_status.seer_target = None
+                new_status.seer_target = self.valid_target_id(target_id)
         elif (game.step == "END_NIGHT"):
-            if (game.wolves_target != None):
-                if (game.guard_target != game.wolves_target):
+            if (game.wolves_target > 0):
+                if (game.guard_target > 0 & game.guard_target != game.wolves_target):
                     player = Player.objects.select_for_update(
                         id_in_game=game.wolves_target)
                     player.status = "OUT"
                     player.save()
-                else:
-                    new_status.wolves_target = None
+                elif (game.guard_target > 0 & game.guard_target == game.wolves_target):
+                    new_status.wolves_target = 0
         elif (game.step == "SPEECH"):
             if (game.first_speaker == None):
                 new_status.first_speaker = self.next_speaker(game.wolves_target)
@@ -542,21 +508,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 else:
                     new_status.current_speaker = self.next_speaker(
                         game.current_speaker)
-
-
-            #if (game.speech_over == None):
-            #    if (game.first_speaker == None):
-            #        new_status.first_speaker = self.next_speaker(game.wolves_target)
-            #        new_status.current_speaker = new_status.first_speaker
-            #elif (~game.speech_over):
-            #    new_status.current_speaker = self.next_speaker(
-            #        game.current_speaker)
-            #if (game.first_speaker == None):
-            #    new_status.first_speaker = self.next_speaker(game.wolves_target)
-            #if (game.current_speaker == None):
-            #   new_status.current_speaker = new_status.first_speaker
-            #else:
-            #    new_status.current_speaker = self.next_speaker(game.current_speaker)
         elif (game.step == "VOTE"):
             player = Player.objects.select_for_update().filter(user=user)
             if (player.status == "ALIVE"):
@@ -575,6 +526,40 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
         new_status.save()
 
+    # check the select target_id
+    # if select None, return 0
+    # if select is not valid, return None
+    # if select is valid, return traget_id
+    def valid_target_id(self, target_id):
+        if (target_id == None):
+            return 0
+        elif (target_id == 0):
+            return 0
+        elif (target_id > 0):
+            target_player = Player.objects.filter(id_in_game=target_id)
+            if (target_player.status != "ALIVE"):
+                return None
+            else:
+                return target_id
+    
+    # if all wolves player select different target, return None
+    # else return the valid target id  
+    def valid_kill_target(self):
+        try:
+            wolves = Player.objects.filter(role="WOLF")
+            i = 0
+            kill_target = None
+            for wolf in wolves:
+                if (i == 0):
+                    kill_target = self.valid_target_id(wolf.kill)
+                else:
+                    if (kill_target != wolf.kill):
+                        return None
+                i += 1
+            return kill_target
+        except:
+            return None
+    
 
     #   Update next step
     def next_step(self):
