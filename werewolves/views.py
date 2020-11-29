@@ -28,15 +28,14 @@ def waitingroom_action(request):
 def start_game_action(request):
     if request.method == 'GET':
         # get the role of the current player
-        print(f'user {request.user}')
         requestPlayer = Player.objects.get(user=request.user)
-        print("in start game action")
         context = {}
         context['identity'] = requestPlayer.role
         # get all the players, so that front end can update the canvas avatars accordingly
         # get the number and username of all the players
         # to avoid the situation when the player id is random in the database, we will manually create id
         players = Player.objects.all()
+        print(f'assigned roles and ids in views {players}')
         for player in players:
                 id = str(player.id_in_game)
                 context['num' + id ] = id
@@ -45,7 +44,6 @@ def start_game_action(request):
                     context['avatar'+ id] = "werewolves/images/bad_avatar.png"
                 else:
                     context['avatar'+ id] = "werewolves/images/good_avatar.png"
-                print(f'assigned roles and ids {player}')
         # show different avatars
         return render(request, 'werewolves/game.html', context)
 

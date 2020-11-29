@@ -115,6 +115,7 @@ function sendStart() {
     }))
 }
 
+
 /**
 enter the game page
 **/
