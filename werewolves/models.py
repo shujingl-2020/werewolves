@@ -27,6 +27,7 @@ class GameStep(Enum):
     END_SPEECH = "END_SPEECH"
     END_VOTE = "END_VOTE" #annouce voting status
     END_GAME = "END_GAME"
+    END_DAY = "END_DAY"
     NONE = "NOT ASSIGNED"
 
     @classmethod
@@ -86,10 +87,10 @@ class GameStatus(models.Model):
     # Indicate if the game is over, False: vote started but not end, True: vote end, None: vote not started
     #vote_over = models.BooleanField(null=True, default=None)
     # null means the player who got assigned the character is out.
-    wolves          = models.ForeignKey(Player, on_delete=models.PROTECT, related_name="is_wolf", null=True)
-    seer            = models.ForeignKey(Player, on_delete=models.PROTECT, related_name="is_seer", null=True)
-    guard           = models.ForeignKey(Player, on_delete=models.PROTECT, related_name="is_guard", null=True)
-    villagers       = models.ForeignKey(Player, on_delete=models.PROTECT, related_name="is_villager", null=True)
+    #wolves          = models.ForeignKey(Player, on_delete=models.PROTECT, related_name="is_wolf", null=True)
+    #seer            = models.ForeignKey(Player, on_delete=models.PROTECT, related_name="is_seer", null=True)
+    #guard           = models.ForeignKey(Player, on_delete=models.PROTECT, related_name="is_guard", null=True)
+    #villagers       = models.ForeignKey(Player, on_delete=models.PROTECT, related_name="is_villager", null=True)
     # Booleans indicating whose turn this is at night (tentative).
     #wolves_turn     = models.BooleanField(default=False)
     #seer_turn       = models.BooleanField(default=False)
