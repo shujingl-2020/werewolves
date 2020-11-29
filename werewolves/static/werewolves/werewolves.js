@@ -234,7 +234,7 @@ function nextStep() {
     //updateGameStatus()
     chatSocket.send(JSON.stringify({
         'type': 'system-message',
-        'update': 'next_step'
+        //'update': 'next_step'
     }))
 }
 
