@@ -26,7 +26,7 @@ class GameStep(Enum):
     #END_SPEECH = "END_SPEECH" # end speech
     VOTE = "VOTE" # start voting
     END_VOTE = "END_VOTE" #annouce voting status
-    END_DAY = "END_DAY" # It is night time
+    #END_DAY = "END_DAY" # It is night time
     END_GAME = "END_GAME"  # Game Over
     NONE = "NOT ASSIGNED"
 
