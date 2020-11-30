@@ -180,34 +180,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     'target_id': target_id,
                 }
             )
-        # to get all players killed at night
-        elif message_type == 'get-out-players-message':
-            await self.channel_layer.group_send(
-                self.general_group,
-                {
-                    'type': 'get_out_players_message',
-                }
-            )
-
-       # to get a speaker
-        elif message_type == 'get-speaker-message':
-            await self.channel_layer.group_send(
-                self.general_group,
-                {
-                    'type': 'get_speaker_message',
-                }
-            )
-
-       # to move on to the next speaker
-        elif message_type == 'update-speaker-message':
-            #TODO: update next speaker function
-            await self.channel_layer.group_send(
-                self.general_group,
-                {
-                    'type': 'update_speaker_message',
-                }
-            )
-
         # exit game message
         elif message_type == 'exit-game-message':
             await database_sync_to_async(self.delete_current_player)()
@@ -914,14 +886,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
             'target_id': target_id,
             'selected_player_status': selected_player_status
         }))
-
-    async def get_out_players_message(self, event):
-        players_out = await database_sync_to_async(self.get_players_out)()
-        await self.send(text_data=json.dumps({
-            'message-type': 'get_out_players_message',
-            'players_out': players_out
-        }))
-
 
     '''exit game feature'''
 

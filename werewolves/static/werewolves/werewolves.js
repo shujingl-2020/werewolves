@@ -88,13 +88,13 @@ function playerMessage(data, message) {
 
         let start_button = document.getElementById('id_start_game_button')
         // Show start button only for the first joined player
-        if (message === 1) {
+//        if (message === 1) {
                 start_button.style.visibility = 'visible'
-        }
+//        }
         // Enable start button for the first player when we have two players in the game
-        if (message === 2 && start_button.style.visibility === 'visible') {
+//        if (message === 2 && start_button.style.visibility === 'visible') {
             start_button.disabled = false
-        }
+//        }
 }
 
 /**
@@ -512,14 +512,14 @@ function updateEndGame(data) {
 }
 
 
-function exitGame() {
-    chatSocket.send(JSON.stringify({
-        'type': 'exit-game-message'
-    }))
-}
-
-function endGame() {
-    let end_button = document.getElementById('id_end_game_button')
-    end_button.disabled = false
-    end_button.click()
-}
+//function exitGame() {
+//    chatSocket.send(JSON.stringify({
+//        'type': 'exit-game-message'
+//    }))
+//}
+//
+//function endGame() {
+//    let end_button = document.getElementById('id_end_game_button')
+//    end_button.disabled = false
+//    end_button.click()
+//}
