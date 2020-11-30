@@ -35,8 +35,6 @@ chatSocket.onmessage = function(e) {
         let target_id = data['target_id']
         let role = data['role']
         let status = data['status']
-//        console.log(`player role ${role}`)
-//        console.log(`current status ${status}`)
         if (role === status || status === 'VOTE') {
              selectPlayer(target_id)
         }
@@ -76,15 +74,15 @@ function playerMessage(data, message) {
         let player_joined = document.getElementById('id_player_join')
         player_joined.innerHTML = player_name + ' joined'
 
-        let start_button = document.getElementById('id_start_game_hidden_button')
-//         Show start button only for the first joined player
-//        if (message === 1) {
-            start_button.style.visibility = 'visible'
-//        }
-         //Enable start button for the first player when we have two players in the game
-//        if (message === 2 && start_button.style.visibility === 'visible') {
+        let start_button = document.getElementById('id_start_game_button')
+        // Show start button only for the first joined player
+        if (message === 1) {
+                start_button.style.visibility = 'visible'
+        }
+        // Enable start button for the first player when we have two players in the game
+        if (message === 2 && start_button.style.visibility === 'visible') {
             start_button.disabled = false
-//        }
+        }
 }
 
 /**

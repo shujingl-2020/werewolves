@@ -5,9 +5,7 @@ from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncWebsocketConsumer
 from asgiref.sync import sync_to_async
 
-
 class ChatConsumer(AsyncWebsocketConsumer):
-    # TODO: Know when
     async def connect(self):
         self.general_group = "general_group"    # all players are in this group
         self.wolves_group = "wolves_group"      # all wolves are in this group
@@ -62,8 +60,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
             self.general_group,
             self.channel_name
         )
-
-        # await database_sync_to_async(self.clear_players)()
 
         self.close()
 
