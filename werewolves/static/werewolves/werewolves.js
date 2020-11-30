@@ -63,38 +63,38 @@ chatSocket.onmessage = function (e) {
  moduralized player message part of in message function
  **/
 function playerMessage(data, message) {
-    // Update number of players on the page
-    let player_count = document.getElementById('id_player_num')
-    player_count.innerHTML = message + ' / 6' // TODO: Change to ' / 6' later
+        // Update number of players on the page
+        let player_count = document.getElementById('id_player_num')
+        player_count.innerHTML = message + ' / 6' // TODO: Change to ' / 6' later
 
-    // Update list of player names on the page
-    let all_players = data['players']
-    let player_list = document.getElementById('id_player_list')
-    // Remove the old player list
-    while (player_list.hasChildNodes()) {
-        player_list.removeChild(player_list.firstChild)
-    }
-    // Recreate the player list
-    all_players.forEach(function (player_name) {
-        let new_player = document.createElement("li")
-        new_player.innerHTML = player_name
-        player_list.append(new_player)
-    })
+        // Update list of player names on the page
+        let all_players = data['players']
+        let player_list = document.getElementById('id_player_list')
+        // Remove the old player list
+        while (player_list.hasChildNodes()) {
+            player_list.removeChild(player_list.firstChild)
+        }
+        // Recreate the player list
+        all_players.forEach(function(player_name) {
+            let new_player  = document.createElement("li")
+            new_player.innerHTML = player_name
+            player_list.append(new_player)
+        })
 
-    // Update the player who just joined
-    let player_name = data['last_player']
-    let player_joined = document.getElementById('id_player_join')
-    player_joined.innerHTML = player_name + ' joined'
+        // Update the player who just joined
+        let player_name = data['last_player']
+        let player_joined = document.getElementById('id_player_join')
+        player_joined.innerHTML = player_name + ' joined'
 
-    let start_button = document.getElementById('id_start_game_hidden_button')
-//         Show start button only for the first joined player
-//        if (message === 1) {
-    start_button.style.visibility = 'visible'
-//        }
-    //Enable start button for the first player when we have two players in the game
-//        if (message === 2 && start_button.style.visibility === 'visible') {
-    start_button.disabled = false
-//        }
+        let start_button = document.getElementById('id_start_game_button')
+        // Show start button only for the first joined player
+        if (message === 1) {
+                start_button.style.visibility = 'visible'
+        }
+        // Enable start button for the first player when we have two players in the game
+        if (message === 2 && start_button.style.visibility === 'visible') {
+            start_button.disabled = false
+        }
 }
 
 /**
