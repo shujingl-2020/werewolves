@@ -23,6 +23,7 @@ chatSocket.onmessage = function(e) {
         startGame()
     }
     else if (message_type === 'system_message') {
+        console.log('in js system_message')
         addSystemMessage(message)
     }
     else if (message_type === 'chat_message') {
@@ -187,6 +188,16 @@ function addMessage(message, username, id) {
      }
 }
 
+/*
+function generateSystemMessage(data){
+    let group = data['group']
+    let step = data['step']
+    if (group == "general") {
+
+    } else if (group =="WOLF")
+}*/
+
+
 /**
  * add the system announcement to the chat box(or title)
  * @param message: the announcement
@@ -226,7 +237,7 @@ function updateGameStatus(id) {
         'target_id': id, /* should be the target id we choose, here for testing */
         'times_up': "False",
     }))
-//}
+}
 
 /**
  * update the next step in game procedure. send request to the websocket
