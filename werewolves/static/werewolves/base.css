@@ -8,6 +8,7 @@
 
 #id_name_of_site {
     margin-left: 120px;
+    margin-right: 40px;
 }
 
 hr {
@@ -103,6 +104,11 @@ img {
   height: 100px;
 }
 
+#site_img {
+  width: 60px;
+  height: 60px;
+}
+
 .row {
    margin-left: 0px !important;
    margin-right: 0px !important;
@@ -169,6 +175,11 @@ img {
    padding: 5px 5px;
    text-align: center;
    font-size: 15px;
+}
+
+#finish_button {
+   width: 120px;
+   font-size: 18px;
 }
 
 .button-container {

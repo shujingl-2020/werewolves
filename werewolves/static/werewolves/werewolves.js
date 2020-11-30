@@ -23,7 +23,25 @@ chatSocket.onmessage = function(e) {
         startGame()
     }
     else if (message_type === 'system_message') {
+        step = data['step']
+        // generate message according to step...
+        // message = generateMessage(step)
         addSystemMessage(message)
+        if (step === 'END_GAME') {
+            updateEndGame(data)
+        } else if (step === 'ANNOUNCE' || step === 'END_VOTE') {
+            removeConfirmBtns()
+            id = data['out_player_id']
+            updateWithPlayersOut(id)
+            nextStep()
+        } else if (step === 'SPEECH') {
+            updateSpeaker(data)
+        } else {
+           removeConfirmBtns()
+        }
+//FOR TESTING
+//        updateWithPlayersOut(['1'])
+//        updateSpeakerTest('1')
     }
     else if (message_type === 'chat_message') {
         username = data['username']
@@ -34,13 +52,13 @@ chatSocket.onmessage = function(e) {
     else if (message_type === 'select_message') {
         let target_id = data['target_id']
         let role = data['role']
-        let status = data['status']
-        if (role === status || status === 'VOTE') {
+        let step = data['step']
+        let selected_player_status = data['selected_player_status']
+//        console.log(`player role ${role}`)
+//        console.log(`current status ${status}`)
+        if (selected_player_status === 'ALIVE' && (role === step || step === 'VOTE')) {
              selectPlayer(target_id)
         }
-    }
-    else if (message_type === 'confirm_message') {
-         updateCanvas()
     }
     else if (message_type === 'exit_game_message') {
         endGame()
@@ -124,7 +142,7 @@ function startGame() {
 }
 
 /**
-Shujing: not sure when is this triggered?
+Shujing: not sure when this is triggered?
 **/
 function distributeCard() {
     chatSocket.send(JSON.stringify({
@@ -207,9 +225,8 @@ function addSystemMessage(message) {
     }
 }
 
-// Shujing: I implemented this in sendConfirm function, not sure if we should still include this function
 // * send target id to update game status
-// * game status will be update depends on the step
+// * game status will be updated depends on the step
 // * target includes:
 // *      wolves target,
 // *      seer target,
@@ -222,8 +239,9 @@ function updateGameStatus(id) {
         'type': 'system-message',
         'update': 'update',
         'target_id': id, /* should be the target id we choose, here for testing */
+        'times_up': "False",
     }))
-//}
+}
 
 /**
  * update the next step in game procedure. send request to the websocket
@@ -233,7 +251,8 @@ function nextStep() {
     //updateGameStatus()
     chatSocket.send(JSON.stringify({
         'type': 'system-message',
-        //'update': 'next_step'
+        'times_up': "False",
+        'update': 'next_step',
     }))
 }
 
@@ -243,6 +262,7 @@ need to know the current player role and game status for the confirm button to s
 **/
 function sendSelect(id) {
     id = String(id)
+    //want to see if role and step match and the player being selected is alive
     chatSocket.send(JSON.stringify({
         'type': 'select-message',
         'id': id,
@@ -267,40 +287,86 @@ function selectPlayer(id) {
    currentButton.disabled = false
 }
 
-/**
-triggered when the player clicks on a confrim button
-update game status in consumers.py
-**/
-function sendConfirm(target_id) {
-    console.log('in send confirm')
-    id = String(target_id)
-    updateGameStatus(id)
-//    chatSocket.send(JSON.stringify({
-//        'type': 'confirm-message',
-//        'target': id
-//    }))
-}
 
 /**
 after updating game status in consumers.py, we should remove the confirm buttons on the page
 **/
-function updateCanvas() {
+function removeConfirmBtns() {
     // as for werewolves, they may have selected different targets,  so we need to have a generic opearation
-    var elements = document.getElementsByClassName('confirm-button');
+    let elements = document.getElementsByClassName('confirm-button');
     while(elements.length > 0){
         elements[0].parentNode.removeChild(elements[0]);
     }
 }
 
+function updateWithPlayersOut(outPlayersId) {
+    let img = document.getElementById('avatar_' + outPlayersId +'_img')
+    img.src = '/static/werewolves/images/out.png'
+}
 
-//function exitGame() {
-//    chatSocket.send(JSON.stringify({
-//        'type': 'exit-game-message'
-//    }))
-//}
-//
-//function endGame() {
-//    let end_button = document.getElementById('id_end_game_button')
-//    end_button.disabled = false
-//    end_button.click()
-//}
+function updateSpeaker(data) {
+    speakerId = data['current_speaker_id']
+    userId = data['current_player_id']
+    speaker_role = data['current_speaker_role']
+    user_role = data['current_player_role']
+    let img = document.getElementById('avatar_' + speakerId +'_img')
+    if (user_role === speaker_role === 'WOLF') {
+        img.src = '/static/werewolves/images/bad_speaking.png'
+    } else {
+        img.src = '/static/werewolves/images/good_speaking.png'
+    }
+    if (speakerId === userId) {
+         let btn = document.getElementById('finish_button')
+         btn.style.display ='block'
+         btn.disabled = false
+    }
+}
+
+function updateEndGame(data) {
+    winStatus = data['message']
+    let area = docuemnt.getElementById('show_end_game')
+    let text = ''
+    if (winStatus === 'WIN') {
+       text = 'Good People Won!'
+    } else {
+       text = 'Werewolves Won!'
+    }
+    area.innerHTML = text
+    //update avatars
+    //update wolves
+    current_player_role = data['current_player_role']
+    if (current_player_role !== 'WOLF') {
+        wolves_ids = data['wolf_id']
+        for (let i = 0; i < wolves_ids.length; i++) {
+            var wolf_img = document.getElementById('avatar_' + wolves_ids[i] +'_img')
+            wolf_img.src = '/static/werewolves/images/bad_avatar.png'
+        }
+    }
+    //update villagers
+    villager_ids = data['villager_id']
+    for (let i = 0; i < villager_ids.length; i++) {
+            var villager_img = document.getElementById('avatar_' + villager_ids[i] +'_img')
+            villager_img.src = '/static/werewolves/images/villager.png'
+    }
+    //update seer
+    seer_id = data['seer_id']
+    let seer_img = document.getElementById('avatar_' + seer_id +'_img')
+    seer_img.src = '/static/werewolves/images/seer.png'
+    //update guard
+    guard_id = data['guard_id']
+    let guard_img = document.getElementById('avatar_' + guard_id +'_img')
+    guard_img.src = '/static/werewolves/images/guard.png'
+}
+
+
+function exitGame() {
+    chatSocket.send(JSON.stringify({
+        'type': 'exit-game-message'
+    }))
+}
+
+function endGame() {
+    let end_button = document.getElementById('id_end_game_button')
+    end_button.disabled = false
+    end_button.click()
+}
