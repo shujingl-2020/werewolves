@@ -265,13 +265,23 @@ class ChatConsumer(AsyncWebsocketConsumer):
         all_players = Player.objects.all()
         # TODO: Change later to len(arr)
         for i in range(len(all_players)):
-            if arr[i] == 0 or arr[i] == 1:
+            # if arr[i] == 0 or arr[i] == 1:
+            #     all_players[i].role = "VILLAGER"
+            # elif arr[i] == 2 or arr[i] == 3:
+            #     all_players[i].role = "WOLF"
+            # elif arr[i] == 4:
+            #     all_players[i].role = "SEER"
+            # elif arr[i] == 5:
+            #     all_players[i].role = "GUARD"
+            # all_players[i].id_in_game = i + 1
+            # all_players[i].save()
+            if i == 0 or i == 1:
                 all_players[i].role = "VILLAGER"
-            elif arr[i] == 2 or arr[i] == 3:
+            elif i == 2 or i == 3:
                 all_players[i].role = "WOLF"
-            elif arr[i] == 4:
+            elif i == 4:
                 all_players[i].role = "SEER"
-            elif arr[i] == 5:
+            elif i == 5:
                 all_players[i].role = "GUARD"
             all_players[i].id_in_game = i + 1
             all_players[i].save()
@@ -693,9 +703,9 @@ class ChatConsumer(AsyncWebsocketConsumer):
         step = game.step
         out_player_id = None
         user = self.scope['user']
-        print("in system message")
-        #print("     user:", user)
-        print("     group:", group, " step: ", step, " user: ", user)
+        # print("in system message")
+        # #print("     user:", user)
+        # print("     group:", group, " step: ", step, " user: ", user)
         current_player = await database_sync_to_async(self.get_current_player)()
         #current_player = await sync_to_async(Player.objects.get, thread_sensitive=True)(user=user)
         #current_player = Player.objects.filter(id_in_game = 1)

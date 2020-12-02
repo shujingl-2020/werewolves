@@ -238,11 +238,11 @@ function generateSystemMessage(data, step) {
     let group = data['group']
     if (group === "general") {
         message = generateGeneralMessage(data, step)
-    } else if (group === "wolves") {
+    } else if (group === "wolves" && step === "WOLF") {
         message = generateWolvesMessage(data, step)
-    } else if (group === "guard") {
+    } else if (group === "guard" && step === "GUARD") {
         message = generateGuardMessage(data, step)
-    } else if (group === "seer") {
+    } else if (group === "seer" && step === "SEER") {
         message = generateSeerMessage(data, step)
     }
     return message
@@ -271,14 +271,9 @@ function generateGeneralMessage(data, step) {
     //send this message when the seer hasn't chosen any target
     else if (step === "SEER" && target_id === null) {
         message = "Seer is seeing a player's identity."
-    }
-
-    else if (step === "END_NIGHT") {
+    } else if (step === "END_NIGHT") {
         message = "It is day time."
-    }
-
-
-    else if (step === "ANNOUNCE") {
+    } else if (step === "ANNOUNCE") {
         target_id = data['target_id']
         if (target_id === '0') {
             message = "Last night, nobody gets killed."
@@ -286,10 +281,7 @@ function generateGeneralMessage(data, step) {
             target_name = data['target_name']
             message = "Last night, Player " + target_id + " " + target_name + " gets killed."
         }
-    }
-
-
-    else if (step === "SPEECH") {
+    } else if (step === "SPEECH") {
         current_speaker_username = data['current_speaker_name']
         current_player_id = data['current_speaker_id']
         if (current_speaker_id === '0') {
@@ -297,14 +289,9 @@ function generateGeneralMessage(data, step) {
         } else {
             message = "Player " + current_speaker_id + ", " + current_speaker_username + "'s turn to speak."
         }
-    }
-
-    else if (step === "VOTE") {
+    } else if (step === "VOTE") {
         message = "Now each player can make a vote. You can abstain from voting if you don't make a choice."
-    }
-
-
-    else if (step === "END_VOTE") {
+    } else if (step === "END_VOTE") {
         all_players_vote = data['all_players_vote']
         for (let i = 0; i < alive_players.length; i++) {
             player_id = str(i + 1)
@@ -322,10 +309,7 @@ function generateGeneralMessage(data, step) {
         } else {
             message += "Nobody gets voted out.\n"
         }
-    }
-
-
-    else if (step === "END_GAME") {
+    } else if (step === "END_GAME") {
         message = "Game Over.\n"
         winStatus = data['message']
         if (winStatus === 'Win') {
@@ -350,9 +334,8 @@ function generateWolvesMessage(data, step) {
     console.log(`target_id ${target_id}`)
     // out_player_id is the common target of all the wolves
     let out_player_id = data['out_player_id']
-    console.log(`target_id ${target_id}`)
+    console.log(`out_player_id ${out_player_id}`)
     let message = ""
-
     // if the wolf hasn't decide who to choose
     if (target_id === null) {
         message = "All wolves should pick the same player to kill. You can choose to kill no one."
@@ -365,7 +348,7 @@ function generateWolvesMessage(data, step) {
     // if the wolves picked a target
     else if (out_player_id !== 0) {
         let target_name = data['target_name']
-        message = "You chose to kill player " + out_player_id + ", " + target_name + "."
+        message = "You chose to kill player " + out_player_id + "."
     }
     // out_player_id === 0, if the wolves did not pick any target
     else {
@@ -380,18 +363,22 @@ function generateWolvesMessage(data, step) {
  * @param step
  */
 function generateGuardMessage(data, step) {
+    console.log("in guard messages")
+    let target_id = data['target_id']
+    console.log(`target_id ${target_id}`)
     let message = ""
-    if (step === "GUARD") {
+    // if the guard hasn't decided who to choose
+    if (target_id === null) {
         message = "Choose a player to protect. \n"
         message += "Note that you can not protect the same player consecutively, and you can choose to protect nobody."
-    } else {
-        let target_id = data['target_id']
-        if (target_id !== 0) {
-            let target_name = data['target_name']
-            message = "You chose to protect " + target_name
-        } else {
-            message = "You chose to protect no one"
-        }
+    }
+    // if the guard picked a target
+    else if (target_id !== 0) {
+        message = "You chose to protect player " + target_id + "."
+    }
+    // if the guard did not pick any target
+    else {
+        message = "You chose to protect no one"
     }
     return message
 }
@@ -403,22 +390,27 @@ function generateGuardMessage(data, step) {
  * @param step
  */
 function generateSeerMessage(data, step) {
+    console.log("in seer messages")
+    let target_id = data['target_id']
+    console.log(`target_id ${target_id}`)
     let message = ""
-    if (step === "SEER") {
-        message = "Please choose a player to see a player's identity. The player will be either good or bad."
+    // if the seer hasn't decided who to choose
+    if (target_id === null) {
+        message = "Please choose a player to see a player's identity. The player will be either good or bad. \n"
         message += "Note that you can not choose not to see anybody."
-    } else {
-        let target_id = data['target_id']
-        if (target_id !== 0) {
-            let target_role = data['target_role']
-            if (target_role === "WOLF") {
-                message = "This player is bad."
-            } else {
-                message = "This player is good."
-            }
+    }
+    // if the seer picked a target
+    else if (target_id !== 0) {
+        let target_role = data['target_role']
+        if (target_role === "WOLF") {
+            message = "Player " + target_id + "is bad."
         } else {
-            message = "You chose to see no one"
+            message = "Player " + target_id + "is good."
         }
+    }
+    // if the seer did not pick any target
+    else {
+        message = "You chose to see no one"
     }
     return message
 }
