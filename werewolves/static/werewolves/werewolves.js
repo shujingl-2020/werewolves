@@ -20,25 +20,22 @@ chatSocket.onmessage = function (e) {
         startGame()
     } else if (message_type === 'system_message') {
         step = data['step']
+        console.log(`step ${step}`)
         target_id = data['target_id']
+        console.log(`target_id ${target_id}`)
         // generate message according to step...
         message = generateSystemMessage(data, step)
         addSystemMessage(message)
+        if (target_id) { removeConfirmBtn(target_id) }
         if (step === 'END_GAME') {
             updateEndGame(data)
         } else if (step === 'ANNOUNCE' || step === 'END_VOTE') {
-            removeConfirmBtn(target_id)
             id = data['out_player_id']
             updateWithPlayersOut(id)
             nextStep()
         } else if (step === 'SPEECH') {
             updateSpeaker(data)
-        } else {
-            removeConfirmBtn(target_id)
         }
-//FOR TESTING
-//        updateWithPlayersOut(['1'])
-//        updateSpeakerTest('1')
     } else if (message_type === 'chat_message') {
         username = data['username']
         id = data['id']
@@ -281,6 +278,7 @@ function generateGeneralMessage(data, step) {
             message += "Werewolves won."
         }
     }
+    return message
 }
 
 
@@ -301,6 +299,7 @@ function generateWolvesMessage(data, step) {
             message = "You chose to kill no one"
         }
     }
+    return message
 }
 
 /**
@@ -321,6 +320,7 @@ function generateGuardMessage(data, step) {
             message = "You chose to protect no one"
         }
     }
+    return message
 }
 
 
@@ -346,6 +346,7 @@ function generateSeerMessage(data, step) {
             message = "You chose to see no one"
         }
     }
+    return message
 }
 
 
@@ -394,7 +395,6 @@ function updateGameStatus(id) {
  */
 function nextStep() {
     /* send from websocket */
-    //updateGameStatus()
     chatSocket.send(JSON.stringify({
         'type': 'system-message',
         'times_up': "False",
