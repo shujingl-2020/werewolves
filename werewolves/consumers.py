@@ -714,9 +714,9 @@ class ChatConsumer(AsyncWebsocketConsumer):
         step = game.step
         out_player_id = None
         user = self.scope['user']
-        # print("in system message")
-        # #print("     user:", user)
-        # print("     group:", group, " step: ", step, " user: ", user)
+        print("in system message")
+        #print("     user:", user)
+        print("     group:", group, " step: ", step, " user: ", user)
         current_player = await database_sync_to_async(self.get_current_player)()
         #current_player = await sync_to_async(Player.objects.get, thread_sensitive=True)(user=user)
         #current_player = Player.objects.filter(id_in_game = 1)
@@ -762,7 +762,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             elif (step == "WOLF"):
                 target_id = current_player.kill
                 out_player_id = game.wolves_select
-            #print("     target_id: ", target_id, "  out_player_id: ", out_player_id)
+                print("     target_id: ", target_id, "  out_player_id: ", out_player_id)
             #target_id = game.wolves_select
                 if (game.wolves_select != None):
                     if (game.wolves_select > 0):
@@ -770,9 +770,10 @@ class ChatConsumer(AsyncWebsocketConsumer):
             elif (step == "GUARD"):
                 target_id = game.guard_select
             elif (step == "SEER"):
-                target_id = game.seer_target
+                target_id = game.seer_select
         elif (group == "seer" and step == "SEER"):
             target_id = game.seer_target
+            print("     target_id: ", target_id)
             if (game.seer_select != None):
                 if (game.seer_select > 0):
                 #seer_target_player = await sync_to_async(Player.objects.get, thread_sensitive=True)(id_in_game=game.seer_target)
@@ -789,7 +790,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             #print(" here")
             target_id = current_player.kill
             out_player_id = game.wolves_select
-            #print("     target_id: ", target_id, "  out_player_id: ", out_player_id)
+            print("     target_id: ", target_id, "  out_player_id: ", out_player_id)
             #target_id = game.wolves_select
             if (game.wolves_select != None):
                 if (game.wolves_select > 0):
@@ -797,6 +798,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     #target_name = await database_sync_to_async(self.get_player_username)(id=game.wolves_select)
         elif (group == "guard" and step == "GUARD"):
             target_id = game.guard_select
+            print("     target_id: ", target_id)
             if (game.guard_select != None):
                 if (game.guard_select > 0):
                     target_name = game.guard_target_name
