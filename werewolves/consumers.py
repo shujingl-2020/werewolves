@@ -121,6 +121,10 @@ class ChatConsumer(AsyncWebsocketConsumer):
             elif update == 'next_step':
                 await database_sync_to_async(self.next_step)(times_up=False)
             # Send system message to different groups
+
+            game = await database_sync_to_async(self.get_game_status)()
+            role = await database_sync_to_async(self.get_current_player_role)()
+
             await self.channel_layer.group_send(
                 self.general_group,
                 {
@@ -128,27 +132,30 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     'group': 'general',
                 }
             )
-            await self.channel_layer.group_send(
-                self.seer_group,
-                {
-                    'type': 'system_message',
-                    'group': 'seer',
-                }
-            )
-            await self.channel_layer.group_send(
-                self.wolves_group,
-                {
-                    'type': 'system_message',
-                    'group': 'wolves',
-                }
-            )
-            await self.channel_layer.group_send(
-                self.guard_group,
-                {
-                    'type': 'system_message',
-                    'group': 'guard',
-                }
-            )
+            if (game.step == "SEER"):
+                await self.channel_layer.group_send(
+                    self.seer_group,
+                    {
+                        'type': 'system_message',
+                        'group': 'seer',
+                    }
+                )
+            if (game.step == "WOLF"):
+                await self.channel_layer.group_send(
+                    self.wolves_group,
+                    {
+                        'type': 'system_message',
+                        'group': 'wolves',
+                    }
+                )
+            if (game.step == "GUARD"):
+                await self.channel_layer.group_send(
+                    self.guard_group,
+                    {
+                        'type': 'system_message',
+                        'group': 'guard',
+                    }
+                )
 
         # chat message
         elif message_type == 'chat-message':
@@ -473,7 +480,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     print("Error in vote step!")
                     pass
 
-                new_status.vote_select = self.vote_player()
+                new_status.vote_select = self.voted_player()
             
             if (new_status.speaker_id != None):
                 if (new_status.vote_select > 0):
@@ -666,6 +673,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
                         player = Player.objects.select_for_update().get(id_in_game=new_status.speaker_id)
                         player.speech = True
                         player.save()
+                
+                print("     end speech set")
                         
         elif (game.step == "VOTE"):
             if (game.vote_select == None):
@@ -854,9 +863,16 @@ class ChatConsumer(AsyncWebsocketConsumer):
         elif (id == 0):
             return alive_players.first().id_in_game
         else:
-            for player in alive_players:
-                if (player.id_in_game > id):
-                    return player.id_in_game
+            speaker_id = (id+1) % 6
+            while (speaker_id != id):
+                if (Player.objects.get(id=speaker_id).status == "ALIVE"):
+                    return speaker_id
+                else:
+                    speaker_id = (speaker_id+1) % 6
+            return None
+            #for player in alive_players:
+            #    if (player.id_in_game > id):
+            #        return player.id_in_game
 
     #
     #   Used to check the end game condition.
