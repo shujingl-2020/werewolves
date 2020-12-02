@@ -6,20 +6,26 @@ var chatSocket = new WebSocket(
     window.location.host +
     '/ws/chat/'
 )
+
 /**
  * when websocket receive message, call addMessage
  */
 chatSocket.onmessage = function (e) {
+    console.log('onmessage')
     var data = JSON.parse(e.data)
     let message_type = data['message-type']
     let message = data['message']
     let username = data['username']
+    console.log('message_type:', message_type)
     if (message_type === 'players_message') {
         playerMessage(data, message)
     } else if (message_type === 'start_game_message') {
         startGame()
     } else if (message_type === 'system_message') {
+        console.log('js system_message')
         step = data['step']
+        console.log('step ', step)
+        console.log('data:', data)
         target_id = data['target_id']
         // generate message according to step...
         message = generateSystemMessage(data, step)

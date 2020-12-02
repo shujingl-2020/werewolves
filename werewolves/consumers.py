@@ -699,7 +699,9 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     else:
                         message = "Good"
         elif (group == "WOLF" and step == "WOLF"):
-            target_id = game.wolves_select
+            target_id = current_player.kill
+            out_player_id = game.wolves_select
+            #target_id = game.wolves_select
             if (game.wolves_select != None):
                 if (game.wolves_select > 0):
                     target_name = game.wolves_target.user.username
@@ -713,14 +715,14 @@ class ChatConsumer(AsyncWebsocketConsumer):
             'message-type': "system_message",
             'group': group,
             'step': step,
-            'out_player_id': out_player_id,
+            'out_player_id': out_player_id, # step wolf: id of final decision
             'current_player_id': current_player_id,
             'current_player_role': current_player_role,
             'speaker_id': speaker_id,
             'current_speaker_role': current_speaker_role,
             'current_speaker_name': current_speaker_name,
             'target_id': target_id, #in step vote, it is the voted player
-            'target_name': target_name,
+            'target_name': target_name, # out player username
             'seer_id': seer_id,
             'guard_id': guard_id,
             'wolf_id': wolf_id,
