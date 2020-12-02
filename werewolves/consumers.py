@@ -530,6 +530,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
                             if (kill_target != wolf.kill):
                                 # print("kill_target:", kill_target)
                                 return None
+                        else:
+                            return None
                     i += 1
                     # print("     i:",i," kill_target:",kill_target)
 
@@ -655,7 +657,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                             id_in_game=new_status.speaker_id).user.username
                         new_status.current_speaker_role = Player.objects.get(
                             id_in_game=new_status.speaker_id).role
-                        player = Player.objects.select_for_update().get(id=new_status.speaker_id)
+                        player = Player.objects.select_for_update().get(id_in_game=new_status.speaker_id)
                         player.speech = True
                         player.save()
 
@@ -732,7 +734,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         wolf_id = None
         villager_id = None
         message = None
-        trigger_id = self.get_trigger_id()
+        trigger_id = await database_sync_to_async(self.get_trigger_id)()
 
         if (group == "general"):
             if (step == "ANNOUNCE"):
@@ -769,7 +771,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             elif (step == "SEER"):
                 target_id = game.seer_select
         elif (group == "seer" and step == "SEER"):
-            target_id = game.seer_target
+            target_id = game.seer_select
             print("     target_id: ", target_id)
             if (game.seer_select != None):
                 if (game.seer_select > 0):
@@ -835,14 +837,18 @@ class ChatConsumer(AsyncWebsocketConsumer):
     # return(out): a player model, next availbe speaker
     #
     def next_speaker(self, id):
+        print("in next_speaker")
+        print("     id:", id)
         alive_players = Player.objects.filter(status="ALIVE")
         # if no dead player from the night, select the oldest alive player joined the room
         if (id == None):
-            return alive_players.first()
+            return alive_players.first().id_in_game
+        elif (id == 0):
+            return alive_players.first().id_in_game
         else:
             for player in alive_players:
                 if (player.id_in_game > id):
-                    return player
+                    return player.id_in_game
 
     #
     #   Used to check the end game condition.
