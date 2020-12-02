@@ -5,6 +5,33 @@
 {% endblock %}
 
 {% block content %}
+<h1><b>Rules for the Werewolves Game</b></h1>
+<br>
+<h3><b>Players</b></h3>
+Werewolves is a board game with 6 players. The players are divided into two camps: 2 in the Wolf camp and 4 in the Good People camp. 
+<br>
+<br>
+<h3><b>Player Roles</b></h3>
+Players in the Wolf camp only have Wolf roles. On the other hand, the Good People Camp consists of 3 different roles: 2 Villagers, 
+1 Seer and 1 Guard. 
+<br>
+<br>
+<h3><b>Game Procedures</b></h3>
+The game has two phases: Night and Day. 
+<br>
+<br>
+<h3><b>Night</b></h3>
+At Night, players in the Wolf camp discuss among themselves and select a player to kill in the Good People camp. Players in the 
+Wolf camp have their identities hidden from the other players. Next, the Seer can check the camp of one player. After that, the 
+Guard is told of which player is killed that night and can choose whether to protect the player or not. If the player who is killed 
+is not protected by the Guard, that player will have to leave the game.
+<br>
+<br>
+<h3><b>Day</b></h3>
+During the Day, all players are notified of whether a players is killed last night and who that player is. Each player will make a 
+speech and then all players will vote for one person. The player who gets the most votes has to leave the game. The players will 
+receive system messages, make speeches and chat with each other using a chat box.
+<br>
 <div>
     <form method="get" action="{% url 'waitingroom' %}">
         <button class="buttons" id="id_join_waiting_room_button">Join Waiting Room</button>
