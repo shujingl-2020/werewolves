@@ -7,7 +7,6 @@ var chatSocket = new WebSocket(
     '/ws/chat/'
 )
 
-
 /**
  * global object to store information received from system message
  */

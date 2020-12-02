@@ -34,7 +34,11 @@ receive system messages, make speeches and chat with each other using a chat box
 <br>
 <div>
     <form method="get" action="{% url 'waitingroom' %}">
-        <button class="buttons" id="id_join_waiting_room_button">Join Waiting Room</button>
+        {% if enable_button %}
+            <button class="buttons" id="id_join_waiting_room_button">Join Waiting Room</button>
+        {% else %}
+            <button class="buttons" id="id_join_waiting_room_button" disabled>Join Waiting Room</button>
+        {% endif %}
         <span id="error" class="error"></span>
     </form>
 </div>
