@@ -265,26 +265,26 @@ class ChatConsumer(AsyncWebsocketConsumer):
         all_players = Player.objects.all()
         # TODO: Change later to len(arr)
         for i in range(len(all_players)):
-            # if arr[i] == 0 or arr[i] == 1:
-            #     all_players[i].role = "VILLAGER"
-            # elif arr[i] == 2 or arr[i] == 3:
-            #     all_players[i].role = "WOLF"
-            # elif arr[i] == 4:
-            #     all_players[i].role = "SEER"
-            # elif arr[i] == 5:
-            #     all_players[i].role = "GUARD"
-            # all_players[i].id_in_game = i + 1
-            # all_players[i].save()
-            if i == 0 or i == 1:
+            if arr[i] == 0 or arr[i] == 1:
                 all_players[i].role = "VILLAGER"
-            elif i == 2 or i == 3:
+            elif arr[i] == 2 or arr[i] == 3:
                 all_players[i].role = "WOLF"
-            elif i == 4:
+            elif arr[i] == 4:
                 all_players[i].role = "SEER"
-            elif i == 5:
+            elif arr[i] == 5:
                 all_players[i].role = "GUARD"
             all_players[i].id_in_game = i + 1
             all_players[i].save()
+            # if i == 0 or i == 1:
+            #     all_players[i].role = "VILLAGER"
+            # elif i == 2 or i == 3:
+            #     all_players[i].role = "WOLF"
+            # elif i == 4:
+            #     all_players[i].role = "SEER"
+            # elif i == 5:
+            #     all_players[i].role = "GUARD"
+            # all_players[i].id_in_game = i + 1
+            # all_players[i].save()
         print(f'all_players in assign roles in consumer {all_players}')
 
 
