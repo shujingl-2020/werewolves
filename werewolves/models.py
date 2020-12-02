@@ -26,7 +26,7 @@ class GameStep(Enum):
     #END_SPEECH = "END_SPEECH" # end speech
     VOTE = "VOTE" # start voting
     END_VOTE = "END_VOTE" #annouce voting status
-    #END_DAY = "END_DAY" # It is night time
+    END_DAY = "END_DAY" # clean all data at this step
     END_GAME = "END_GAME"  # Game Over
     NONE = "NOT ASSIGNED"
 
@@ -71,12 +71,23 @@ class GameStatus(models.Model):
     # False means night, True means day.
     #night           = models.BooleanField(default=False)
     # Target player's id, null means the wolves haven't decided yet.
-    wolves_target   = models.IntegerField(null=True)
-    guard_target    = models.IntegerField(null=True)
-    seer_target     = models.IntegerField(null=True)
-    vote_target     = models.IntegerField(null=True)
-    first_speaker   = models.IntegerField(null=True)
-    current_speaker     = models.IntegerField(null=True)
+    wolves_select = models.IntegerField(null=True)
+    wolves_target           = models.ForeignKey(
+        Player, on_delete=models.PROTECT, related_name="is_wolf_target", null=True)
+    guard_select = models.IntegerField(null=True)
+    guard_target            = models.ForeignKey(
+        Player, on_delete=models.PROTECT, related_name="is_guard_target", null=True)
+    guard_previous_id       = models.IntegerField(null=True)
+    seer_select = models.IntegerField(null=True)
+    seer_target             = models.ForeignKey(
+        Player, on_delete=models.PROTECT, related_name="is_seer_target", null=True)
+    vote_select = models.IntegerField(null=True)
+    vote_target = models.ForeignKey(
+        Player, on_delete=models.PROTECT, related_name="is_vote_target", null=True)
+    first_speaker_id        = models.IntegerField(null=True)
+    speaker_id = models.IntegerField(null=True)
+    current_speaker         = models.ForeignKey(
+        Player, on_delete=models.PROTECT, related_name="is_current_speaker", null=True)
     #wolves_target = models.ForeignKey(
     #    Player, on_delete=models.PROTECT, related_name="is_wolf_target", null=True)
     #guard_target = models.ForeignKey(
@@ -89,7 +100,7 @@ class GameStatus(models.Model):
     #first_speaker   = models.ForeignKey(Player, on_delete=models.PROTECT, related_name="is_first_speaker", null=True)
     #current_speaker = models.ForeignKey(Player, on_delete=models.PROTECT, related_name="is_current_speaker", null=True)
     # Indicate the current game step
-    step = models.CharField(max_length=30, choices=GameStep.choices(), default=GameStep.NONE)
+    step            = models.CharField(max_length=30, choices=GameStep.choices(), default=GameStep.NONE)
     # Indicate if the game is over, False: wolves win, True: good people win, None: game is not over
     winning         = models.BooleanField(null=True, default=None)
     # Indicate if the speech is over, False: speech started but not end True: speech end, None: speech not started
@@ -97,10 +108,10 @@ class GameStatus(models.Model):
     # Indicate if the game is over, False: vote started but not end, True: vote end, None: vote not started
     #vote_over = models.BooleanField(null=True, default=None)
     # null means the player who got assigned the character is out.
-    #wolves          = models.ForeignKey(Player, on_delete=models.PROTECT, related_name="is_wolf", null=True)
-    #seer            = models.ForeignKey(Player, on_delete=models.PROTECT, related_name="is_seer", null=True)
-    #guard           = models.ForeignKey(Player, on_delete=models.PROTECT, related_name="is_guard", null=True)
-    #villagers       = models.ForeignKey(Player, on_delete=models.PROTECT, related_name="is_villager", null=True)
+    wolves          = models.CharField(max_length=6, null=True, blank=True)
+    seer            = models.CharField(max_length=6, null=True, blank=True)
+    guard           = models.CharField(max_length=6, null=True, blank=True)
+    villagers       = models.CharField(max_length=6, null=True, blank=True)
     # Booleans indicating whose turn this is at night (tentative).
     #wolves_turn     = models.BooleanField(default=False)
     #seer_turn       = models.BooleanField(default=False)
