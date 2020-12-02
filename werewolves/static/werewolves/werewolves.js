@@ -16,7 +16,7 @@ chatSocket.onmessage = function (e) {
     let message_type = data['message-type']
     let message = data['message']
     let username = data['username']
-    console.log('message_type:', message_type)
+    console.log('data:', data)
     if (message_type === 'players_message') {
         playerMessage(data, message)
     } else if (message_type === 'start_game_message') {
