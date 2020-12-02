@@ -18,6 +18,7 @@ def rulespage_action(request):
             context = { 'enable_button': True }
         else:
             context = { 'enable_button': True }
+        print('in rule action')
         return render(request, 'werewolves/rules.html', context)
 
 @login_required
@@ -26,13 +27,13 @@ def waitingroom_action(request):
     if request.method == 'GET':
         context = {}
         player_count = Player.objects.count()
-        if player_count >= 6:
-            # If there are more than 6 players, do not allow new player 
-            # to enter the waiting room
-            context['enable_button'] = False
-            return render(request, 'werewolves/rules.html', context)
-        else:
-            return render(request, 'werewolves/waitingroom.html', context)
+        # if player_count >= 6:
+        #     # If there are more than 6 players, do not allow new player
+        #     # to enter the waiting room
+        #     context['enable_button'] = False
+        #     return render(request, 'werewolves/rules.html', context)
+        # else:
+        return render(request, 'werewolves/waitingroom.html', context)
 
 @login_required
 @ensure_csrf_cookie
