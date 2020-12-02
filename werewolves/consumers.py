@@ -170,17 +170,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     }
                 )
 
-        # select message
-        elif message_type == 'select-message':
-            target_id = text_data_json['id']
-            await self.channel_layer.group_send(
-                # self.room_group_name,
-                self.general_group,
-                {
-                    'type': 'select_message',
-                    'target_id': target_id,
-                }
-            )
         # exit game message
         elif message_type == 'exit-game-message':
             await database_sync_to_async(self.delete_current_player)()
@@ -906,46 +895,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
             role = None
         return role
 
-    def get_current_player_id(self):
-        player = Player.objects.get(user=self.scope['user'])
-        id = player.id_in_game
-        return id
-
-    # Used to get all the players that are out of game after a step
-    def get_players_out(self):
-        res = []
-        # get only the players killed last night
-        players = Player.objects.filter(status="OUT")
-        for player in players:
-            res.append(str(player.id_in_game))
-        return res
-
-    # get the status of the player that is selected
-    def get_selected_player_status(self, id):
-        player = Player.objects.get(id_in_game=id)
-        return player.status
-
-    # Used to get the player that is speaking
-    def get_current_speaker_role_and_id(self):
-        game = self.get_game_status()
-        speaker = game.current_speaker
-        id = speaker.id_in_game
-        role = speaker.role
-        return role, id
-
-    async def select_message(self, event):
-        target_id = event['target_id']
-        status = await database_sync_to_async(self.get_game_status)()
-        step = status.step
-        role = await database_sync_to_async(self.get_current_player_role)()
-        selected_player_status = await database_sync_to_async(self.get_selected_player_status)(target_id)
-        await self.send(text_data=json.dumps({
-            'message-type': 'select_message',
-            'role': role,
-            'step':step,
-            'target_id': target_id,
-            'selected_player_status': selected_player_status
-        }))
 
     '''exit game feature'''
 
