@@ -21,7 +21,7 @@
                     </div>
                     <div class="col-md-4 col-lg-4">
                         <a href="#" onclick="selectPlayer(1)" id="player_1_avatar_link">
-                            <img id="avatar_1_img" src="{% static avatar1 %}">
+                            <img id="avatar_1_img" src="{% static avatar1 %}" alt="player 1">
                         </a>
                     </div>
                     <div class="col-md-3 col-lg-3">
@@ -55,7 +55,7 @@
                 <div class="row avatar-row justify-content-center" id="avatars_row_2">
                     <div class="col-md-2 col-lg-2">
                         <a href="#" onclick="selectPlayer(2)" id="player_2_avatar_link">
-                            <img id="avatar_2_img" src="{% static avatar2 %}">
+                            <img id="avatar_2_img" src="{% static avatar2 %}" alt="player 2">
                         </a>
                     </div>
                     <div class="col-md-6 col-lg-6" id="show_end_game">
@@ -63,7 +63,7 @@
                     </div>
                     <div class="col-md-1 col-lg-2">
                         <a href="#" onclick="selectPlayer(6)" id="player_6_avatar_link">
-                            <img id="avatar_6_img" src="{% static avatar6 %}">
+                            <img id="avatar_6_img" src="{% static avatar6 %}" alt="player 6">
                         </a>
                     </div>
                 </div>
@@ -97,14 +97,14 @@
                 <div class="row avatar-row justify-content-center" id="avatars_row_3">
                     <div class="col-md-2 col-lg-2">
                         <a href="#" onclick="selectPlayer(3)" id="player_3_avatar">
-                            <img id="avatar_3_img" src="{% static avatar3 %}">
+                            <img id="avatar_3_img" src="{% static avatar3 %}" alt="player 3">
                         </a>
                     </div>
                     <div class="col-md-6 col-lg-6">
                     </div>
                     <div class="col-md-2 col-lg-2">
                         <a href="#" onclick="selectPlayer(5)" id="player_5_avatar_link">
-                            <img id="avatar_5_img" src="{% static avatar5 %}">
+                            <img id="avatar_5_img" src="{% static avatar5 %}" alt="player 5">
                         </a>
                     </div>
                 </div>
@@ -143,12 +143,12 @@
                     </div>
                     <div class="col-md-4 col-lg-4">
                         <a href="#" onclick="selectPlayer(4)" id="player_4_avatar_link">
-                            <img id="avatar_4_img" src="{% static avatar4 %}">
+                            <img id="avatar_4_img" src="{% static avatar4 %}" alt="player 4">
                         </a>
                     </div>
                     <div class="col-md-3 col-lg-3">
 <!--                        button to press after finishing speaking -->
-                        <button class="hidden_buttons" onclick="nextStep()" style="display: none" id="finish_button" disabled>Finish</button>
+                        <button class="hidden_buttons" onclick="nextStep()" style="display: none" id="next_step_button" disabled>Skip Action</button>
                     </div>
                 </div>
 
@@ -193,9 +193,9 @@
                 <div class="col">
                     <button class="buttons" id="message_button" onclick="sendMessage()">Send</button>
                 </div>
-                <div class="col">
-                    <button class="buttons" id="message_button" onclick="nextStep()">Next Step</button>
-                </div>
+<!--                <div class="col">-->
+<!--                    <button class="buttons" id="message_button" onclick="nextStep()">Next Step</button>-->
+<!--                </div>-->
             </div>
         </div>
     </div>

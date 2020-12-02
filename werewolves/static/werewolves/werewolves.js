@@ -7,7 +7,6 @@ var chatSocket = new WebSocket(
     '/ws/chat/'
 )
 
-
 /**
  * global object to store information received from system message
  */
@@ -17,8 +16,12 @@ var systemGlobal = {
     out_player_id: null,
     current_player_id: null,
     current_player_role: null,
+    sepaker_id: null,
+    current_speaker_role: null,
+    current_speaker_name: null,
     target_id: null,
     target_name: null,
+    trigger_id: null,
     seer_id: null,
     wolf_id: null,
     villager_id: null,
@@ -32,31 +35,14 @@ chatSocket.onmessage = function (e) {
     let data = JSON.parse(e.data)
     let message_type = data['message-type']
     let message = data['message']
-    let username = data['username']
     if (message_type === 'players_message') {
         playerMessage(data, message)
     } else if (message_type === 'start_game_message') {
         startGame()
     } else if (message_type === 'system_message') {
-        updateSystemGlobal(data)
-        let step = data['step']
-        let target_id = data['target_id']
-        let out_player_id = data['out_player_id']
-        // generate system message according to step.
-        let systemMessage = generateSystemMessage(data, step)
-        addSystemMessage(systemMessage)
-        if (step === 'END_GAME') {
-            updateEndGame(data)
-        } else if (step === 'ANNOUNCE' || step === 'END_VOTE') {
-            updateWithPlayersOut(out_player_id)
-            nextStep()
-        } else if (step === 'SPEECH') {
-            updateSpeaker(data)
-        } else if (step === 'END_DAY' || (step === 'WOLF' && out_player_id !== null)
-            || (step === 'GUARD' && target_id !== null) || (step === 'SEER' && target_id !== null)) {
-            nextStep()
-        }
+       systemMessageHandle(data)
     } else if (message_type === 'chat_message') {
+        let username = data['username']
         username = data['username']
         let id = data['id']
         sanitize(message)
@@ -104,6 +90,47 @@ function playerMessage(data, message) {
 //        }
 }
 
+
+/**
+ * handle system message received from websocket
+ */
+function systemMessageHandle(data) {
+    updateSystemGlobal(data)
+    let step = data['step']
+    let role = data['current_player_role']
+    let target_id = data['target_id']
+    let out_player_id = data['out_player_id']
+    let player_id = data['current_player_id']
+    let trigger_id = data['trigger_id']
+    // generate system message according to step.
+    let systemMessage = generateSystemMessage(data, step)
+    // show message in the chatbox.
+    addSystemMessage(systemMessage)
+    if (step === 'END_GAME') {
+        updateEndGame(data)
+    } else if (step === 'ANNOUNCE' || step === 'END_VOTE') {
+        updateWithPlayersOut(out_player_id)
+        if (player_id === trigger_id) {
+            nextStep()
+        }
+    } else if (step === 'SPEECH') {
+        updateSpeaker(data)
+    } else if (step === 'END_DAY' || (step === 'WOLF' && out_player_id !== null)
+        || (step === 'GUARD' && target_id !== null) || (step === 'SEER' && target_id !== null)) {
+        if (player_id === trigger_id) {
+            nextStep()
+        }
+    }
+    // when to show the skip action button? when the players haven't decide target yet
+    else if ((step === "WOLF"&& step === role && out_player_id === null )
+        || (step !== "WOLF" && step === role && target_id === null)) {
+        showNextStepButton("night")
+    }
+}
+
+
+
+
 /**
  * update global system message object.
  * @param data information receiveed from websocket.
@@ -114,8 +141,12 @@ function updateSystemGlobal(data) {
     systemGlobal.out_player_id = data['out_player_id']
     systemGlobal.current_player_id = data['current_player_id']
     systemGlobal.current_player_role = data['current_player_role']
+    systemGlobal.sepaker_id = data['sepaker_id']
+    systemGlobal.current_speaker_role = data['current_speaker_role']
+    systemGlobal.current_speaker_name = data['current_speaker_name']
     systemGlobal.target_id = data['target_id']
     systemGlobal.target_name = data['target_name']
+    systemGlobal.trigger_id = data['trigger_id']
     systemGlobal.seer_id = data['seer_id']
     systemGlobal.wolf_id = data['wolf_id']
     systemGlobal.villager_id = data['villager_id']
@@ -225,8 +256,6 @@ function addChatMessage(message, username, id) {
     }
 }
 
-
-// extra fields needed from system message: target_name, current_speaker_name, all_players_vote([idxd: vote_id]),
 
 /**
  * generate different system messages according to different game steps
@@ -401,10 +430,10 @@ function generateSeerMessage(data, step) {
     }
     // if the seer picked a target
     else if (target_id !== 0) {
-        let target_role = data['target_role']
-        if (target_role === "WOLF") {
+        let target_role = data['message']
+        if (target_role === "Good") {
             message = "Player " + target_id + "is bad."
-        } else {
+        } else if (target_role === "Bad"){
             message = "Player " + target_id + "is good."
         }
     }
@@ -448,19 +477,20 @@ function addSystemMessage(message) {
 // *
 // */
 function updateGameStatus(id) {
+    hideConfirmBtn(id);
     chatSocket.send(JSON.stringify({
         'type': 'system-message',
         'update': 'update',
         'target_id': id, /* should be the target id we choose, here for testing */
         'times_up': "False",
     }))
-    removeConfirmBtn(id);
 }
 
 /**
  * update the next step in game procedure. send request to the websocket
  */
 function nextStep() {
+    hideNextStepButton()
     /* send from websocket */
     chatSocket.send(JSON.stringify({
         'type': 'system-message',
@@ -496,7 +526,7 @@ function selectPlayer(id) {
 /**
  after updating game status in consumers.py, we should remove the confirm buttons on the page
  **/
-function removeConfirmBtn(id) {
+function hideConfirmBtn(id) {
     let confirm_btn = document.getElementById('confirm_button_' + id)
     if (confirm_btn) {
         confirm_btn.style.display = 'none'
@@ -530,10 +560,29 @@ function updateSpeaker(data) {
         img.src = '/static/werewolves/images/good_speaking.png'
     }
     if (speakerId === userId) {
-        let btn = document.getElementById('finish_button')
+        let btn = document.getElementById('next_step_button')
         btn.style.display = 'block'
         btn.disabled = false
     }
+}
+
+//decide what content to show in the button
+function showNextStepButton(option) {
+    let btn = document.getElementById('next_step_button')
+    btn.style.display = 'block'
+    btn.disabled = false
+    if (option === "night") {
+        btn.innerHTML = "Skip Action"
+    } else if (option === "speak") {
+        btn.innerHTML = "Finish"
+    }
+}
+
+// hide the step button when the next step function is tirggered
+function hideNextStepButton() {
+    let btn = document.getElementById('next_step_button')
+    btn.style.display = 'none'
+    btn.disabled = true
 }
 
 function updateEndGame(data) {
