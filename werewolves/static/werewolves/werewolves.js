@@ -33,7 +33,6 @@ chatSocket.onmessage = function (e) {
     let message_type = data['message-type']
     let message = data['message']
     let username = data['username']
-    console.log('data:', data)
     if (message_type === 'players_message') {
         playerMessage(data, message)
     } else if (message_type === 'start_game_message') {
@@ -256,7 +255,7 @@ function generateSystemMessage(data, step) {
  */
 function generateGeneralMessage(data, step) {
     let target_id = data['target_id']
-
+    console.log(`target_id in general message ${target_id}`)
     //send this message when the the night starts
     if (step === "END_DAY") {
         message = "It is night time."
