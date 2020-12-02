@@ -736,6 +736,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         wolf_id = None
         villager_id = None
         message = None
+        trigger_id = self.get_trigger_id()
 
         if (group == "general"):
             if (step == "ANNOUNCE"):
@@ -816,12 +817,21 @@ class ChatConsumer(AsyncWebsocketConsumer):
             'current_speaker_name': current_speaker_name,
             'target_id': target_id, #in step vote, it is the voted player
             'target_name': target_name, # out player username
+            'trigger_id': trigger_id,
             'seer_id': seer_id,
             'guard_id': guard_id,
             'wolf_id': wolf_id,
             'villager_id': villager_id,
             'message': message, # in step seer, good/bad person
         }))
+
+    def get_trigger_id(self):
+        players = Player.objects.all()
+        for player in players:
+            if (player.status == "ALIVE"):
+                return player.id_in_game
+        
+        return None
 
 
     #  get the next alive speaker.
