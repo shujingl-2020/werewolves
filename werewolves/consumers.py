@@ -224,7 +224,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
             'id': id
         }))
 
-    # TODO: Let player name be the one who just logged in
 
     def create_message(self, message):
         message_sender = self.scope["user"]
