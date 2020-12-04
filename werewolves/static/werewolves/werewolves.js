@@ -113,7 +113,7 @@ function systemMessageHandle(data) {
             nextStep()
         }
     } else if (step === 'SPEECH') {
-        if (data['current_player_id'] === null) {
+        if (data['current_speaker_id'] === null) {
             nextStep()
         } else {
             updateSpeaker(data)
@@ -585,8 +585,10 @@ function showNextStepButton(option) {
 // hide the step button when the next step function is tirggered
 function hideNextStepButton() {
     let btn = document.getElementById('next_step_button')
-    btn.style.display = 'none'
-    btn.disabled = true
+    if (btn) {
+        btn.style.display = 'none'
+        btn.disabled = true
+    }
 }
 
 function updateEndGame(data) {
