@@ -354,7 +354,7 @@ function generateGeneralMessage(data, step) {
         if (speaker_id === '0') {
             message = "Now each player needs to make a speech."
         } else {
-            message = "Player " + speaker_id + ", " + current_speaker_name + "'s turn to speak."
+            message = "Player " + speaker_id + "'s turn to speak."
         }
     } else if (step === "VOTE") {
         message = "Now each player can make a vote. You can abstain from voting if you don't make a choice."
