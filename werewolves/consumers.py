@@ -275,16 +275,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 all_players[i].role = "GUARD"
             all_players[i].id_in_game = i + 1
             all_players[i].save()
-            # if i == 0 or i == 1:
-            #     all_players[i].role = "VILLAGER"
-            # elif i == 2 or i == 3:
-            #     all_players[i].role = "WOLF"
-            # elif i == 4:
-            #     all_players[i].role = "SEER"
-            # elif i == 5:
-            #     all_players[i].role = "GUARD"
-            # all_players[i].id_in_game = i + 1
-            # all_players[i].save()
         print(f'all_players in assign roles in consumer {all_players}')
 
     def get_num_players(self):

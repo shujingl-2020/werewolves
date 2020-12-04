@@ -19,7 +19,7 @@
 </div>
 
 <div>
-    <button class="button" style="visibility: hidden" id="id_start_game_button" onclick="sendStart()" disabled>Start Game</button>
+    <button class="buttons" style="visibility: hidden" id="id_start_game_button" onclick="sendStart()" disabled>Start Game</button>
     <form method="get" action="{% url 'game' %}">
         <button class="hidden_buttons buttons" style="visibility: hidden" id="id_start_game_hidden_button" disabled></button>
         <span id="error" class="error"></span>

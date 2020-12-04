@@ -432,9 +432,9 @@ function generateSeerMessage(data, step) {
     else if (target_id !== 0) {
         let target_role = data['message']
         if (target_role === "Good") {
-            message = "Player " + target_id + "is good."
+            message = "Player " + target_id + " is good."
         } else if (target_role === "Bad"){
-            message = "Player " + target_id + "is bad."
+            message = "Player " + target_id + " is bad."
         }
     }
     // if the seer did not pick any target

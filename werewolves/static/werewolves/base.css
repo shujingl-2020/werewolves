@@ -96,6 +96,7 @@ table {
    margin-top: 150px;
 }
 
+
 /*game page*/
 
 
@@ -177,8 +178,14 @@ img {
 }
 
 #next_step_button {
-   width: 120px;
-   font-size: 18px;
+    margin-top: 50px;
+    margin-left: 50px;
+    width: 120px;
+    font-size: 16px;
+    border-radius: 3px;
+    border-width: 0.5px;
+    padding: 5px 5px;
+    text-align: center;
 }
 
 .button-container {
@@ -188,6 +195,7 @@ img {
 .message-time {
   font-family: Arial, Helvetica, sans-serif;
 }
+
 
 .system-message {
    font-family: Arial, Helvetica, sans-serif;
