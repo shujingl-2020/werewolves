@@ -108,7 +108,8 @@ function systemMessageHandle(data) {
         let systemMessage = generateSystemMessage(data, step)
         // show message in the chatbox.
         if (step === "ANNOUNCE" || step === "END_VOTE" || step === 'END_GAME') {
-            setTimeout(addSystemMessage(systemMessage), 1000)
+            wait(1000)
+            addSystemMessage(systemMessage)
         } else {
             addSystemMessage(systemMessage)
         }
@@ -117,17 +118,26 @@ function systemMessageHandle(data) {
         updateEndGame(data)
     } else if (step === 'ANNOUNCE' || step === 'END_VOTE') {
         console.log(`in announce ${out_player_id}`)
-        updateWithPlayersOut(out_player_id)
+        if (out_player_id) {
+            updateWithPlayersOut(out_player_id)
+        }
         if (player_id === trigger_id) {
             nextStep()
         }
     } else if (step === 'SPEECH') {
         if (speaker_id === null && player_id === trigger_id) {
             nextStep()
-        } else {
+        } else if (speaker_id !== null){
             updateSpeaker(data)
         }
-    } else if (step === 'END_DAY' || (step === 'WOLF' && out_player_id !== null)
+    } else if (step === "VOTE" ) {
+        if (target_id === null) {
+            showNextStepButton("vote")
+        } else {
+            hideNextStepButton()
+        }
+    }
+    else if (step === 'END_DAY' || (step === 'WOLF' && out_player_id !== null)
         || (step === 'GUARD' && target_id !== null) || (step === 'SEER' && target_id !== null)) {
         let role = data['current_player_role']
         if (step === role) {
@@ -186,6 +196,19 @@ function sendJoin() {
         }))
     }
 }
+
+
+/**
+ * synchronuous function to let the function wait before executing
+ */
+function wait(ms) {
+    var start = Date.now(),
+        now = start;
+    while (now - start < ms) {
+        now = Date.now();
+    }
+}
+
 
 /**
  triggered when the player clicks on the start button
@@ -385,11 +408,12 @@ function generateWolvesMessage(data, step) {
     }
     // if the wolves didn't pick the same target
     else if (out_player_id === null) {
-        //TODO: how to distinguish different wolves
+        //TODO: how to distinguish different wolves?
         message = "You chose to kill player " + target_id + ", but your teammate chose a different target. \n"
             + "All wolves should pick the same player to kill. You can have a discussion in the chat to decide a common target."
     }
     // if the wolves picked a target
+    //TODO: doesn't print this message
     else if (out_player_id !== '0') {
         message = "You chose to kill player " + out_player_id + "."
     }
@@ -519,6 +543,7 @@ function nextStep() {
  **/
 function selectPlayer(id) {
     //check if the role and step match first
+    //TODO: Need to know whether the player is alive
     let step = systemGlobal.step
     let role = systemGlobal.current_player_role
     let target_id = systemGlobal.target_id
@@ -559,10 +584,13 @@ function updateWithPlayersOut(outPlayersId) {
 function updateSpeaker(data) {
     //remove stars
     for (let i = 1; i <= 6; i++) {
-        let speaker_img = document.getElementById('avatar_' + i.toString() + '_img')
+        let speaker_img = document.getElementById('avatar_' + string(i) + '_img')
+        console.log(`speaker_img.src ${speaker_img.src}`)
         if (speaker_img.src === '/static/werewolves/images/bad_speaking.png') {
+            console.log(`speaker_img.src ${speaker_img.src}`)
             speaker_img.src = '/static/werewolves/images/bad_avatar.png'
         } else if (speaker_img.src === '/static/werewolves/images/good_speaking.png') {
+            console.log(`speaker_img.src ${speaker_img.src}`)
             speaker_img.src = '/static/werewolves/images/good_avatar.png'
         }
     }
@@ -575,6 +603,8 @@ function updateSpeaker(data) {
     }
     //update speaker's avatar
     let img = document.getElementById('avatar_' + speakerId + '_img')
+    console.log(`speaker id ${speakerId}`)
+    console.log(`img ${img}`)
     if (user_role === 'WOLF'&& speaker_role === "WOLF") {
         img.src = '/static/werewolves/images/bad_speaking.png'
     } else {
@@ -597,7 +627,11 @@ function showNextStepButton(option) {
         btn.onclick = function () {
             nextStep();
         };
-        console.log(`btn in speech {btn}`)
+    } else if (option === "vote") {
+        btn.innerHTML = "Abstain"
+        btn.onclick = function () {
+            updateGameStatus(null);
+        };
     }
 }
 
