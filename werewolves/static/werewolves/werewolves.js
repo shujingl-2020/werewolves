@@ -287,6 +287,7 @@ function generateSystemMessage(data, step) {
  */
 function generateGeneralMessage(data, step) {
     let target_id = data['target_id']
+    let message = ""
     console.log(`target_id in general message ${target_id}`)
     //send this message when the the night starts
     if (step === "END_DAY") {
@@ -310,12 +311,12 @@ function generateGeneralMessage(data, step) {
         if (target_id === '0') {
             message = "Last night, nobody gets killed."
         } else {
-            target_name = data['target_name']
+            let target_name = data['target_name']
             message = "Last night, Player " + target_id + " " + target_name + " gets killed."
         }
     } else if (step === "SPEECH") {
-        current_speaker_username = data['current_speaker_name']
-        current_player_id = data['current_speaker_id']
+        let current_speaker_username = data['current_speaker_name']
+        let current_speaker_id = data['current_speaker_id']
         if (current_speaker_id === '0') {
             message = "Now each player needs to make a speech."
         } else {
@@ -324,10 +325,10 @@ function generateGeneralMessage(data, step) {
     } else if (step === "VOTE") {
         message = "Now each player can make a vote. You can abstain from voting if you don't make a choice."
     } else if (step === "END_VOTE") {
-        all_players_vote = data['all_players_vote']
+       let  all_players_vote = data['all_players_vote']
         for (let i = 0; i < alive_players.length; i++) {
-            player_id = str(i + 1)
-            vote_id = alive_players[i]
+            let player_id = str(i + 1)
+            let vote_id = alive_players[i]
             if (vote_id === '0') {
                 message += "Player " + player_id + " abstained from voting \n"
             } else if (vote_id !== '-1') {
@@ -336,14 +337,14 @@ function generateGeneralMessage(data, step) {
         }
         target_id = data['target_id']
         if (target_id > 0) {
-            target_name = data['target_name']
+            let target_name = data['target_name']
             message += target_name + " is voted out.\n"
         } else {
             message += "Nobody gets voted out.\n"
         }
     } else if (step === "END_GAME") {
         message = "Game Over.\n"
-        winStatus = data['message']
+        let winStatus = data['message']
         if (winStatus === 'Win') {
             message += "Good people won."
         } else {
@@ -589,7 +590,7 @@ function hideNextStepButton() {
 }
 
 function updateEndGame(data) {
-    winStatus = data['message']
+    let winStatus = data['message']
     let area = docuemnt.getElementById('show_end_game')
     let text = ''
     if (winStatus === 'Win') {
@@ -600,26 +601,26 @@ function updateEndGame(data) {
     area.innerHTML = text
     //update avatars
     //update wolves
-    current_player_role = data['current_player_role']
+    let current_player_role = data['current_player_role']
     if (current_player_role !== 'WOLF') {
-        wolves_ids = data['wolf_id']
+        let wolves_ids = data['wolf_id']
         for (let i = 0; i < wolves_ids.length; i++) {
             let wolf_img = document.getElementById('avatar_' + wolves_ids[i] + '_img')
             wolf_img.src = '/static/werewolves/images/bad_avatar.png'
         }
     }
     //update villagers
-    villager_ids = data['villager_id']
+    let villager_ids = data['villager_id']
     for (let i = 0; i < villager_ids.length; i++) {
         let villager_img = document.getElementById('avatar_' + villager_ids[i] + '_img')
         villager_img.src = '/static/werewolves/images/villager.png'
     }
     //update seer
-    seer_id = data['seer_id']
+    let seer_id = data['seer_id']
     let seer_img = document.getElementById('avatar_' + seer_id + '_img')
     seer_img.src = '/static/werewolves/images/seer.png'
     //update guard
-    guard_id = data['guard_id']
+    let guard_id = data['guard_id']
     let guard_img = document.getElementById('avatar_' + guard_id + '_img')
     guard_img.src = '/static/werewolves/images/guard.png'
 }
