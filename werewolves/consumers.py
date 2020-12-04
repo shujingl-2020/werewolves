@@ -519,10 +519,11 @@ class ChatConsumer(AsyncWebsocketConsumer):
             for wolf in wolves:
                 # print(wolf)
                 if (wolf.status == "ALIVE"):
-                    # print("     i:", i, " wolf.kill:", wolf.kill)
+                    print("     i:", i, " wolf.kill:", wolf.kill)
                     if (i == 0):
                         kill_target = self.valid_target(wolf.kill)
                     else:
+                        print("     i:", i, " kill_target:", kill_target)
                         if (wolf.kill != None):
                             if (kill_target != wolf.kill):
                                 # print("kill_target:", kill_target)
@@ -530,7 +531,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                         else:
                             return None
                     i += 1
-                    # print("     i:",i," kill_target:",kill_target)
+                    print("     i:",i," kill_target:",kill_target)
 
             if (kill_target != None):
                 if (kill_target > 0):
@@ -850,11 +851,17 @@ class ChatConsumer(AsyncWebsocketConsumer):
             return alive_players.first().id_in_game
         else:
             speaker_id = (id+1) % 6
+            if (speaker_id == 0):
+                speaker_id = 6
+            print("     speaker id:", speaker_id)
             while (speaker_id != id):
+                print("     speaker id:", speaker_id)
                 if (Player.objects.get(id_in_game=speaker_id).status == "ALIVE"):
                     return speaker_id
                 else:
                     speaker_id = (speaker_id+1) % 6
+                    if (speaker_id == 0):
+                        speaker_id = 6
             return None
             #for player in alive_players:
             #    if (player.id_in_game > id):
