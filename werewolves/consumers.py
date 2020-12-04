@@ -739,6 +739,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         if (group == "general"):
             if (step == "ANNOUNCE"):
                 out_player_id = game.wolves_select
+                target_name = game.wolves_target_name
             elif (step == "SPEECH"):
 
                 speaker_id = game.speaker_id
@@ -849,7 +850,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         else:
             speaker_id = (id+1) % 6
             while (speaker_id != id):
-                if (Player.objects.get(id=speaker_id).status == "ALIVE"):
+                if (Player.objects.get(id_in_game=speaker_id).status == "ALIVE"):
                     return speaker_id
                 else:
                     speaker_id = (speaker_id+1) % 6
