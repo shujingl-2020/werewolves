@@ -16,7 +16,7 @@ var systemGlobal = {
     out_player_id: null,
     current_player_id: null,
     current_player_role: null,
-    sepaker_id: null,
+    speaker_id: null,
     current_speaker_role: null,
     current_speaker_name: null,
     target_id: null,
@@ -113,7 +113,7 @@ function systemMessageHandle(data) {
             nextStep()
         }
     } else if (step === 'SPEECH') {
-        if (data['current_speaker_id'] === null) {
+        if (data['speaker_id'] === null) {
             nextStep()
         } else {
             updateSpeaker(data)
@@ -315,12 +315,12 @@ function generateGeneralMessage(data, step) {
             message = "Last night, Player " + out_player_id + " " + target_name + " gets killed."
         }
     } else if (step === "SPEECH") {
-        let current_speaker_username = data['current_speaker_name']
-        let current_speaker_id = data['current_speaker_id']
-        if (current_speaker_id === '0') {
+        let current_speaker_name = data['current_speaker_name']
+        let speaker_id = data['speaker_id']
+        if (speaker_id === '0') {
             message = "Now each player needs to make a speech."
         } else {
-            message = "Player " + current_speaker_id + ", " + current_speaker_username + "'s turn to speak."
+            message = "Player " + speaker_id + ", " + current_speaker_name + "'s turn to speak."
         }
     } else if (step === "VOTE") {
         message = "Now each player can make a vote. You can abstain from voting if you don't make a choice."
@@ -494,6 +494,7 @@ function updateGameStatus(id) {
  * update the next step in game procedure. send request to the websocket
  */
 function nextStep() {
+    console.log("in next step")
     hideNextStepButton()
     /* send from websocket */
     chatSocket.send(JSON.stringify({
@@ -546,19 +547,19 @@ function updateWithPlayersOut(outPlayersId) {
 function updateSpeaker(data) {
     //remove stars
     for (let i = 1; i <= 6; i++) {
-        var speaker_img = document.getElementById('avatar_' + str(i) + '_img')
+        var speaker_img = document.getElementById('avatar_' + i.toString() + '_img')
         if (speaker_img.src === '/static/werewolves/images/bad_speaking.png') {
             speaker_img.src = '/static/werewolves/images/bad_avatar.png'
         } else if (speaker_img.src === '/static/werewolves/images/good_speaking.png') {
             speaker_img.src = '/static/werewolves/images/good_avatar.png'
         }
     }
-    speakerId = data['current_speaker_id']
-    userId = data['current_player_id']
-    speaker_role = data['current_speaker_role']
-    user_role = data['current_player_role']
+    let speakerId = data['speaker_id']
+    let userId = data['current_player_id']
+    let speaker_role = data['current_speaker_role']
+    let user_role = data['current_player_role']
     let img = document.getElementById('avatar_' + speakerId + '_img')
-    if (user_role === speaker_role === 'WOLF') {
+    if (user_role === speaker_role && user_role === 'WOLF') {
         img.src = '/static/werewolves/images/bad_speaking.png'
     } else {
         img.src = '/static/werewolves/images/good_speaking.png'
@@ -584,10 +585,14 @@ function showNextStepButton(option) {
 
 // hide the step button when the next step function is tirggered
 function hideNextStepButton() {
+    console.log("in hide next step button")
     let btn = document.getElementById('next_step_button')
-    if (btn) {
+    console.log(`btn ${btn}`)
+    if (btn.style.display === 'block') {
         btn.style.display = 'none'
+        console.log(`btn style ${btn.style.display}`)
         btn.disabled = true
+        console.log(`btn disabled ${btn.disabled}`)
     }
 }
 
