@@ -72,27 +72,27 @@ class GameStatus(models.Model):
     #night           = models.BooleanField(default=False)
     # Target player's id, null means the wolves haven't decided yet.
     wolves_select = models.IntegerField(null=True)
-    wolves_target           = models.ForeignKey(
-        Player, on_delete=models.PROTECT, related_name="is_wolf_target", null=True)
+    #wolves_target           = models.ForeignKey(
+    #    Player, on_delete=models.PROTECT, related_name="is_wolf_target", null=True)
     wolves_target_name      =  models.CharField(max_length=30, null=True, default="NONE")
     guard_select = models.IntegerField(null=True)
-    guard_target            = models.ForeignKey(
-        Player, on_delete=models.PROTECT, related_name="is_guard_target", null=True)
+    #guard_target            = models.ForeignKey(
+    #    Player, on_delete=models.PROTECT, related_name="is_guard_target", null=True)
     guard_target_name = models.CharField(max_length=30, null=True, default="NONE")
     guard_previous_id       = models.IntegerField(null=True)
     seer_select = models.IntegerField(null=True)
-    seer_target             = models.ForeignKey(
-        Player, on_delete=models.PROTECT, related_name="is_seer_target", null=True)
+    #seer_target             = models.ForeignKey(
+    #    Player, on_delete=models.PROTECT, related_name="is_seer_target", null=True)
     seer_target_name        = models.CharField(max_length=30, null=True, default="NONE")
     seer_target_role        = models.CharField(max_length=30, null=True, default="NONE")
     vote_select             = models.IntegerField(null=True)
-    vote_target             = models.ForeignKey(
-        Player, on_delete=models.PROTECT, related_name="is_vote_target", null=True)
+    #vote_target             = models.ForeignKey(
+    #    Player, on_delete=models.PROTECT, related_name="is_vote_target", null=True)
     vote_target_name        = models.CharField(max_length=30, null=True, default="NONE")
     first_speaker_id        = models.IntegerField(null=True)
     speaker_id = models.IntegerField(null=True)
-    current_speaker         = models.ForeignKey(
-        Player, on_delete=models.PROTECT, related_name="is_current_speaker", null=True)
+    #current_speaker         = models.ForeignKey(
+    #    Player, on_delete=models.PROTECT, related_name="is_current_speaker", null=True)
     current_speaker_name    = models.CharField(max_length=30, null=True, default="NONE")
     current_speaker_role    = models.CharField(max_length=30, null=True, default="NONE")
     #wolves_target = models.ForeignKey(
