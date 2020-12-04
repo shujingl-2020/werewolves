@@ -43,7 +43,6 @@ chatSocket.onmessage = function (e) {
        systemMessageHandle(data)
     } else if (message_type === 'chat_message') {
         let username = data['username']
-        username = data['username']
         let id = data['id']
         sanitize(message)
         addChatMessage(message, username, id)
@@ -114,7 +113,11 @@ function systemMessageHandle(data) {
             nextStep()
         }
     } else if (step === 'SPEECH') {
-        updateSpeaker(data)
+        if (data['current_player_id'] === null) {
+            nextStep()
+        } else {
+            updateSpeaker(data)
+        }
     } else if (step === 'END_DAY' || (step === 'WOLF' && out_player_id !== null)
         || (step === 'GUARD' && target_id !== null) || (step === 'SEER' && target_id !== null)) {
         if (player_id === trigger_id) {
