@@ -607,6 +607,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                             player.status = "OUT"
                             player.save()
 
+                new_status.step = "ANNOUNCE"
                 # new_status.winning = self.is_end_game()
                 # if (new_status.winning == None):
                 #    new_status.step = "ANNOUNCE"
@@ -758,7 +759,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 villager_id = game.villagers
                 message = game.winning
             elif (step == "WOLF"):
-                target_id = current_player.kill
+                #target_id = current_player.kill
+                target_id = await database_sync_to_async(self.select_kill_id)()
                 out_player_id = game.wolves_select
                 print("     target_id: ", target_id, "  out_player_id: ", out_player_id)
                 # target_id = game.wolves_select
@@ -855,6 +857,14 @@ class ChatConsumer(AsyncWebsocketConsumer):
             #for player in alive_players:
             #    if (player.id_in_game > id):
             #        return player.id_in_game
+    
+    def select_kill_id(self):
+        players = Player.objects.filter(role="WOLF")
+        for player in players:
+            if (player.status == "ALIVE"):
+                if player.kill != None:
+                    return player.kill
+        return None
 
     #
     #   Used to check the end game condition.
