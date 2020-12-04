@@ -113,8 +113,8 @@ function systemMessageHandle(data) {
             nextStep()
         }
     } else if (step === 'SPEECH') {
-        if (data['speaker_id'] === null) {
-            nextStep()
+        if (data['speaker_id'] === null && player_id === trigger_id) {
+                nextStep()
         } else {
             updateSpeaker(data)
         }
@@ -336,7 +336,7 @@ function generateGeneralMessage(data, step) {
             }
         }
         target_id = data['target_id']
-        if (target_id > 0) {
+        if (target_id !== '0') {
             let target_name = data['target_name']
             message += target_name + " is voted out.\n"
         } else {
@@ -375,12 +375,12 @@ function generateWolvesMessage(data, step) {
     }
     // if the wolves didn't pick the same target
     else if (out_player_id === null) {
+        //TODO: how to distinguish different wolves
         message = "You chose to kill player " + target_id + ", but your teammate chose a different target. \n"
             + "All wolves should pick the same player to kill. You can have a discussion in the chat to decide a common target."
     }
     // if the wolves picked a target
-    else if (out_player_id !== 0) {
-        let target_name = data['target_name']
+    else if (out_player_id !== '0') {
         message = "You chose to kill player " + out_player_id + "."
     }
     // out_player_id === 0, if the wolves did not pick any target
@@ -406,7 +406,7 @@ function generateGuardMessage(data, step) {
         message += "Note that you can not protect the same player consecutively, and you can choose to protect nobody."
     }
     // if the guard picked a target
-    else if (target_id !== 0) {
+    else if (target_id !== '0') {
         message = "You chose to protect player " + target_id + "."
     }
     // if the guard did not pick any target
@@ -433,7 +433,7 @@ function generateSeerMessage(data, step) {
         message += "Note that you can not choose not to see anybody."
     }
     // if the seer picked a target
-    else if (target_id !== 0) {
+    else if (target_id !== '0') {
         let target_role = data['message']
         if (target_role === "Good") {
             message = "Player " + target_id + " is good."
@@ -482,6 +482,7 @@ function addSystemMessage(message) {
 // */
 function updateGameStatus(id) {
     hideConfirmBtn(id);
+    hideNextStepButton();
     chatSocket.send(JSON.stringify({
         'type': 'system-message',
         'update': 'update',
@@ -565,9 +566,7 @@ function updateSpeaker(data) {
         img.src = '/static/werewolves/images/good_speaking.png'
     }
     if (speakerId === userId) {
-        let btn = document.getElementById('next_step_button')
-        btn.style.display = 'block'
-        btn.disabled = false
+       showNextStepButton("speak")
     }
 }
 
@@ -578,8 +577,10 @@ function showNextStepButton(option) {
     btn.disabled = false
     if (option === "night") {
         btn.innerHTML = "Skip Action"
+        btn.onclick = "updateGameStatus(null)"
     } else if (option === "speak") {
         btn.innerHTML = "Finish"
+        btn.onclick = "nextStep()"
     }
 }
 
