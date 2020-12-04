@@ -739,6 +739,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         if (group == "general"):
             if (step == "ANNOUNCE"):
                 out_player_id = game.wolves_select
+                target_name = game.wolves_target_name
             elif (step == "SPEECH"):
 
                 speaker_id = game.speaker_id
