@@ -786,6 +786,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                         message = "Bad"
                     else:
                         message = "Good"
+            print("     seer message: ", message)
 
         elif (group == "wolves" and step == "WOLF"):
             # print(" here")
