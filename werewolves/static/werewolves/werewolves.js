@@ -288,13 +288,13 @@ function generateSystemMessage(data, step) {
 function generateGeneralMessage(data, step) {
     let target_id = data['target_id']
     let message = ""
-    console.log(`target_id in general message ${target_id}`)
     //send this message when the the night starts
     if (step === "END_DAY") {
         message = "It is night time."
     }
     //send this message when the wolf hasn't chosen any target
     else if (step === "WOLF" && target_id === null) {
+        console.log(`target_id in general message ${target_id}`)
         message = "Wolf is choosing a player to kill."
     }
     //send this message when the guard hasn't chosen any target
@@ -307,12 +307,12 @@ function generateGeneralMessage(data, step) {
     } else if (step === "END_NIGHT") {
         message = "It is day time."
     } else if (step === "ANNOUNCE") {
-        target_id = data['target_id']
-        if (target_id === '0') {
+        let out_player_id = data['out_player_id']
+        if (out_player_id === '0') {
             message = "Last night, nobody gets killed."
         } else {
             let target_name = data['target_name']
-            message = "Last night, Player " + target_id + " " + target_name + " gets killed."
+            message = "Last night, Player " + out_player_id + " " + target_name + " gets killed."
         }
     } else if (step === "SPEECH") {
         let current_speaker_username = data['current_speaker_name']
