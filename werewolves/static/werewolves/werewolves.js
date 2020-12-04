@@ -94,7 +94,6 @@ function playerMessage(data, message) {
  * handle system message received from websocket
  */
 function systemMessageHandle(data) {
-    console.log(`data ${data}`)
     updateSystemGlobal(data)
     let step = data['step']
     let group = data['group']
@@ -119,7 +118,7 @@ function systemMessageHandle(data) {
         updateEndGame(data)
     } else if (step === 'ANNOUNCE' || step === 'END_VOTE') {
         console.log(`in announce ${out_player_id}`)
-        if (group === "general" && out_player_id) {
+        if (group === "general" && out_player_id !== null) {
             updateWithPlayersOut(out_player_id)
         }
         if (group === "general" &&  player_id === trigger_id) {
@@ -134,23 +133,25 @@ function systemMessageHandle(data) {
     } else if (step === "VOTE") {
         if (group === "general" && target_id === null) {
             showNextStepButton("vote")
-        } else if (group === "general") {
+        } else if (group === "general" && target_id !== null) {
             hideNextStepButton()
         }
     } else if (step === 'END_DAY' || (step === 'WOLF' && out_player_id !== null)
         || (step === 'GUARD' && target_id !== null) || (step === 'SEER' && target_id !== null)) {
         let role = data['current_player_role']
-        if (group === "general" && step === role) {
+        if (group !== "general" && step === role) {
+            console.log("hide next button if group !== general")
             hideNextStepButton();
         }
         if (group === "general" && player_id === trigger_id) {
+            console.log(`next step for end day and end action at night`)
             nextStep()
         }
     }
     // when to show the skip action button? when the players haven't decide target yet
     else if ((step === "WOLF" && step === role && out_player_id === null)
         || (step !== "WOLF" && step === role && target_id === null)) {
-        if (group === "general") {
+        if (group !== "general") {
             showNextStepButton("night")
         }
     }
@@ -324,21 +325,22 @@ function generateSystemMessage(data, step) {
 function generateGeneralMessage(data, step) {
     let target_id = data['target_id']
     let message = ""
+    let role = data['current_player_role']
     //send this message when the the night starts
     if (step === "END_DAY") {
         message = "It is night time."
     }
     //send this message when the wolf hasn't chosen any target
-    else if (step === "WOLF" && target_id === null) {
+    else if (role !== "WOLF" && step === "WOLF" && target_id === null) {
         console.log(`target_id in general message ${target_id}`)
         message = "Wolf is choosing a player to kill."
     }
     //send this message when the guard hasn't chosen any target
-    else if (step === "GUARD" && target_id === null) {
+    else if (role !== "GUARD" && step === "GUARD" && target_id === null) {
         message = "Guard is choosing a player to protect."
     }
     //send this message when the seer hasn't chosen any target
-    else if (step === "SEER" && target_id === null) {
+    else if (role !== "SEER" && step === "SEER" && target_id === null) {
         message = "Seer is seeing a player's identity."
     } else if (step === "END_NIGHT") {
         message = "It is day time."
@@ -358,7 +360,7 @@ function generateGeneralMessage(data, step) {
         } else {
             message = "Player " + speaker_id + "'s turn to speak."
         }
-    } else if (step === "VOTE") {
+    } else if (step === "VOTE" && target_id === null) {
         message = "Now each player can make a vote. You can abstain from voting if you don't make a choice."
     } else if (step === "END_VOTE") {
         // TODO: votes maybe an array of objects
@@ -406,7 +408,7 @@ function generateWolvesMessage(data, step) {
     let message = ""
     // if the wolf hasn't decide who to choose
     if (target_id === null) {
-        message = "All wolves should pick the same player to kill. You can choose to kill no one."
+        message = "Now is your time to perform actions. Please choose a player to kill. \n All wolves should pick the same player to kill. You can choose to kill no one."
     }
     // if the wolves didn't pick the same target
     else if (out_player_id === null) {
@@ -437,7 +439,7 @@ function generateGuardMessage(data, step) {
     let message = ""
     // if the guard hasn't decided who to choose
     if (target_id === null) {
-        message = "Choose a player to protect. \n"
+        message = "Now is your time to perform actions. Please choose a player to protect. \n"
         message += "Note that you can not protect the same player consecutively, and you can choose to protect nobody."
     }
     // if the guard picked a target
@@ -464,7 +466,7 @@ function generateSeerMessage(data, step) {
     let message = ""
     // if the seer hasn't decided who to choose
     if (target_id === null) {
-        message = "Please choose a player to see a player's identity. The player will be either good or bad. \n"
+        message = "Now is your time to perform actions. Please choose a player to see a player's identity. \n The player will be either good or bad. \n"
         message += "Note that you can not choose not to see anybody."
     }
     // if the seer picked a target
@@ -561,7 +563,7 @@ function selectPlayer(id) {
         }
         let out_img = '/static/werewolves/images/out.png'
         let avatar = document.getElementById('avatar_' + String(id) + '_img')
-        if (avatar.src !== out_img) {
+        if (avatar.getAttribute('src')!== out_img) {
             let currentButton = document.getElementById('confirm_button_' + String(id))
             currentButton.style.display = 'block'
             currentButton.disabled = false
@@ -593,12 +595,10 @@ function updateSpeaker(data) {
     //remove stars
     for (let i = 1; i <= 6; i++) {
         let speaker_img = document.getElementById('avatar_' + String(i) + '_img')
-        console.log(`speaker_img.src before entering the condition ${speaker_img.src}`)
-        if (speaker_img.src === bad_speaking_img) {
+        if (speaker_img.getAttribute('src')=== bad_speaking_img) {
             console.log(`speaker_img_bad.src ${speaker_img.src}`)
             speaker_img.src = '/static/werewolves/images/bad_avatar.png'
-        } else if (speaker_img.src === good_speaking_img) {
-            console.log(`speaker_img_good.src ${speaker_img.src}`)
+        } else if (speaker_img.getAttribute('src')=== good_speaking_img) {
             speaker_img.src = '/static/werewolves/images/good_avatar.png'
         }
     }
@@ -611,8 +611,6 @@ function updateSpeaker(data) {
     }
     //update speaker's avatar
     let img = document.getElementById('avatar_' + speakerId + '_img')
-    console.log(`speaker id ${speakerId}`)
-    console.log(`img ${img.src}`)
     if (user_role === 'WOLF' && speaker_role === "WOLF") {
         img.src = bad_speaking_img
     } else {
