@@ -40,7 +40,7 @@ chatSocket.onmessage = function (e) {
     } else if (message_type === 'start_game_message') {
         startGame()
     } else if (message_type === 'system_message') {
-       systemMessageHandle(data)
+        systemMessageHandle(data)
     } else if (message_type === 'chat_message') {
         let username = data['username']
         let id = data['id']
@@ -94,6 +94,7 @@ function playerMessage(data, message) {
  * handle system message received from websocket
  */
 function systemMessageHandle(data) {
+    console.log(`data ${data}`)
     updateSystemGlobal(data)
     let step = data['step']
     let role = data['current_player_role']
@@ -101,37 +102,47 @@ function systemMessageHandle(data) {
     let out_player_id = data['out_player_id']
     let player_id = data['current_player_id']
     let trigger_id = data['trigger_id']
+    let speaker_id = data['speaker_id']
     // generate system message according to step.
-    let systemMessage = generateSystemMessage(data, step)
-    // show message in the chatbox.
-    addSystemMessage(systemMessage)
+    if (!(step === "SPEECH" && speaker_id === null)) {
+        let systemMessage = generateSystemMessage(data, step)
+        // show message in the chatbox.
+        if (step === "ANNOUNCE" || step === "END_VOTE" || step === 'END_GAME') {
+            setTimeout(addSystemMessage(systemMessage), 1000)
+        } else {
+            addSystemMessage(systemMessage)
+        }
+    }
     if (step === 'END_GAME') {
         updateEndGame(data)
     } else if (step === 'ANNOUNCE' || step === 'END_VOTE') {
+        console.log(`in announce ${out_player_id}`)
         updateWithPlayersOut(out_player_id)
         if (player_id === trigger_id) {
             nextStep()
         }
     } else if (step === 'SPEECH') {
-        if (data['speaker_id'] === null && player_id === trigger_id) {
-                nextStep()
+        if (speaker_id === null && player_id === trigger_id) {
+            nextStep()
         } else {
             updateSpeaker(data)
         }
     } else if (step === 'END_DAY' || (step === 'WOLF' && out_player_id !== null)
         || (step === 'GUARD' && target_id !== null) || (step === 'SEER' && target_id !== null)) {
+        let role = data['current_player_role']
+        if (step === role) {
+            hideNextStepButton();
+        }
         if (player_id === trigger_id) {
             nextStep()
         }
     }
     // when to show the skip action button? when the players haven't decide target yet
-    else if ((step === "WOLF"&& step === role && out_player_id === null )
+    else if ((step === "WOLF" && step === role && out_player_id === null)
         || (step !== "WOLF" && step === role && target_id === null)) {
         showNextStepButton("night")
     }
 }
-
-
 
 
 /**
@@ -325,9 +336,8 @@ function generateGeneralMessage(data, step) {
     } else if (step === "VOTE") {
         message = "Now each player can make a vote. You can abstain from voting if you don't make a choice."
     } else if (step === "END_VOTE") {
-       let  all_players_vote = data['all_players_vote']
         for (let i = 0; i < alive_players.length; i++) {
-            let player_id = str(i + 1)
+            let player_id = (i + 1).toString()
             let vote_id = alive_players[i]
             if (vote_id === '0') {
                 message += "Player " + player_id + " abstained from voting \n"
@@ -437,7 +447,7 @@ function generateSeerMessage(data, step) {
         let target_role = data['message']
         if (target_role === "Good") {
             message = "Player " + target_id + " is good."
-        } else if (target_role === "Bad"){
+        } else if (target_role === "Bad") {
             message = "Player " + target_id + " is bad."
         }
     }
@@ -482,7 +492,6 @@ function addSystemMessage(message) {
 // */
 function updateGameStatus(id) {
     hideConfirmBtn(id);
-    hideNextStepButton();
     chatSocket.send(JSON.stringify({
         'type': 'system-message',
         'update': 'update',
@@ -512,7 +521,8 @@ function selectPlayer(id) {
     //check if the role and step match first
     let step = systemGlobal.step
     let role = systemGlobal.current_player_role
-    if (step === 'VOTE' || step === role) {
+    let target_id = systemGlobal.target_id
+    if (step === 'VOTE' && target_id === null || step === role) {
         for (let i = 1; i <= 6; i++) {
             if (i !== id) {
                 let confirm_btn = document.getElementById('confirm_button_' + String(i))
@@ -541,6 +551,7 @@ function hideConfirmBtn(id) {
 }
 
 function updateWithPlayersOut(outPlayersId) {
+    console.log(`update out player ${outPlayersId}`)
     let img = document.getElementById('avatar_' + outPlayersId + '_img')
     img.src = '/static/werewolves/images/out.png'
 }
@@ -548,7 +559,7 @@ function updateWithPlayersOut(outPlayersId) {
 function updateSpeaker(data) {
     //remove stars
     for (let i = 1; i <= 6; i++) {
-        var speaker_img = document.getElementById('avatar_' + i.toString() + '_img')
+        let speaker_img = document.getElementById('avatar_' + i.toString() + '_img')
         if (speaker_img.src === '/static/werewolves/images/bad_speaking.png') {
             speaker_img.src = '/static/werewolves/images/bad_avatar.png'
         } else if (speaker_img.src === '/static/werewolves/images/good_speaking.png') {
@@ -557,16 +568,17 @@ function updateSpeaker(data) {
     }
     let speakerId = data['speaker_id']
     let userId = data['current_player_id']
-    let speaker_role = data['current_speaker_role']
     let user_role = data['current_player_role']
+    let speaker_role = data['current_speaker_role']
+    if (speakerId === userId) {
+        showNextStepButton("speak")
+    }
+    //update speaker's avatar
     let img = document.getElementById('avatar_' + speakerId + '_img')
-    if (user_role === speaker_role && user_role === 'WOLF') {
+    if (user_role === 'WOLF'&& speaker_role === "WOLF") {
         img.src = '/static/werewolves/images/bad_speaking.png'
     } else {
         img.src = '/static/werewolves/images/good_speaking.png'
-    }
-    if (speakerId === userId) {
-       showNextStepButton("speak")
     }
 }
 
@@ -577,23 +589,24 @@ function showNextStepButton(option) {
     btn.disabled = false
     if (option === "night") {
         btn.innerHTML = "Skip Action"
-        btn.onclick = "updateGameStatus(null)"
+        btn.onclick = function () {
+            updateGameStatus(null);
+        };
     } else if (option === "speak") {
         btn.innerHTML = "Finish"
-        btn.onclick = "nextStep()"
+        btn.onclick = function () {
+            nextStep();
+        };
+        console.log(`btn in speech {btn}`)
     }
 }
 
 // hide the step button when the next step function is tirggered
 function hideNextStepButton() {
-    console.log("in hide next step button")
     let btn = document.getElementById('next_step_button')
-    console.log(`btn ${btn}`)
-    if (btn.style.display === 'block') {
+    if (btn && btn.style.display === 'block') {
         btn.style.display = 'none'
-        console.log(`btn style ${btn.style.display}`)
         btn.disabled = true
-        console.log(`btn disabled ${btn.disabled}`)
     }
 }
 
