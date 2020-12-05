@@ -29,25 +29,6 @@ var systemGlobal = {
     sender_id: null,
 }
 
-// Update the count down every 1 second
-// var countDown = setInterval(function() {
-//     // Timer countdown is 2 minutes
-//     var time = 120000
-      
-//     // Time calculations for minutes and seconds
-//     var minutes = Math.floor((time % (1000 * 60 * 60)) / (1000 * 60))
-//     var seconds = Math.floor((time % (1000 * 60)) / 1000)
-      
-//     // Output the result in an element with id="id_timer"
-//     document.getElementById("id_timer").innerHTML = minutes + "m " + seconds + "s "
-      
-//     // If the count down is over, trigger next step 
-//     if (time < 0) {
-//       clearInterval(countDown)
-//       // Call next_step here
-//       nextStep(true)
-//     }
-//   }, 1000);
 
 /**
  * when websocket receive message, call addMessage
@@ -125,7 +106,6 @@ function systemMessageHandle(data) {
     let out_player_id = data['out_player_id']
     let player_id = data['current_player_id']
     let trigger_id = data['trigger_id']
-    console.log(`trigger id ${trigger_id}`)
     let status = data['current_player_status']
     let speaker_id = data['speaker_id']
     // generate system message according to step.
@@ -141,27 +121,23 @@ function systemMessageHandle(data) {
     }
     if (step === 'END_GAME') {
         updateEndGame(data)
+        showEndGameBtn()
         sendEndGame()
-        endGame()
     } else if (step === 'ANNOUNCE' || step === 'END_VOTE') {
-        console.log(`in announce ${out_player_id}`)
         if (out_player_id !== null) {
             updateWithPlayersOut(out_player_id)
         }
         if (player_id === trigger_id) {
-            console.log("call next step in announce")
             nextStep()
         }
     } else if (step === 'SPEECH') {
         if (speaker_id === null && player_id === trigger_id) {
-            console.log("call next step in speech")
             nextStep()
         } else if (speaker_id !== null) {
             updateSpeaker(data)
         }
     } else if (step === "VOTE") {
         let all_players_vote = data['all_players_vote']
-        console.log(`all players vote in step vote  ${all_players_vote}`)
         if (all_players_vote === "XXXXXX") {
             removeOldSpeaker()
         }
@@ -176,11 +152,9 @@ function systemMessageHandle(data) {
     } else if (status === "ALIVE" && (step === 'END_DAY' || (step === 'WOLF' && out_player_id !== null)
         || (step === 'GUARD' && target_id !== null) || (step === 'SEER' && target_id !== null))) {
         if (step === role) {
-            console.log("hide next button if end action at night")
             hideNextStepButton();
         }
         if (player_id === trigger_id) {
-            console.log(`next step for end day and end action at night`)
             nextStep()
         }
     } else if ((step === "WOLF" && step === role && out_player_id === null)
@@ -374,7 +348,6 @@ function generateGeneralMessage(data, step) {
     }
     //send this message when the wolf hasn't chosen any target
     else if (role !== "WOLF" && step === "WOLF" && is_kill === "False") {
-        console.log(`is_kill if role is not wolf ${is_kill}`)
         message.push("Wolf is choosing a player to kill.")
     }
     //send this message when the guard hasn't chosen any target
@@ -391,7 +364,6 @@ function generateGeneralMessage(data, step) {
         if (out_player_id !== 0) {
             message.push("Last night, player " + out_player_id + " gets killed.")
         } else if (out_player_id === 0) {
-            console.log(`out_player_id in announce ${out_player_id}`)
             message.push("Last night, nobody gets killed.")
         }
     } else if (step === "SPEECH") {
@@ -403,7 +375,6 @@ function generateGeneralMessage(data, step) {
         }
     } else if (step === "VOTE") {
         let all_players_vote = data['all_players_vote']
-        console.log(`all players vote ${all_players_vote}`)
         let player_id = data['current_player_id']
         let sender_id = data['sender_id']
         //print this only when nobody has voted
@@ -412,7 +383,6 @@ function generateGeneralMessage(data, step) {
         } else if (player_id === sender_id && target_id !== 0) {
             message.push("You voted player " + target_id + ".")
         } else if (player_id === sender_id && target_id === 0) {
-            console.log(`target id if abstain ${target_id}`)
             message.push("You abstained from voting.")
         }
     } else if (step === "END_VOTE") {
@@ -420,7 +390,6 @@ function generateGeneralMessage(data, step) {
         for (let i = 0; i < 6; i++) {
             let player_id = String(i + 1)
             let vote_id = votes[i]
-            console.log(`in vote ${typeof vote_id}`)
             if (vote_id === '0') {
                 message.push("Player " + player_id + " abstained from voting")
             } else if (vote_id !== 'X') {
@@ -428,7 +397,6 @@ function generateGeneralMessage(data, step) {
             }
         }
         let out_player_id = data['out_player_id']
-        console.log(`in vote out_player ${typeof out_player_id}`)
         if (out_player_id === 0) {
             message.push("Nobody gets voted out")
         } else if (out_player_id){
@@ -453,13 +421,10 @@ function generateGeneralMessage(data, step) {
  * @param step
  */
 function generateWolvesMessage(data, step) {
-    console.log("in wolves messages")
     // target_id is the target that an individual wolf selects
     let target_id = data['target_id']
-    console.log(`target_id ${target_id}`)
     // out_player_id is the common target of all the wolves
     let out_player_id = data['out_player_id']
-    console.log(`out_player_id ${out_player_id}`)
     let message = []
     let is_kill = data['message']
     let player = data['current_player_id']
@@ -494,9 +459,7 @@ function generateWolvesMessage(data, step) {
  * @param step
  */
 function generateGuardMessage(data, step) {
-    console.log("in guard messages")
     let target_id = data['target_id']
-    console.log(`target_id ${target_id}`)
     let message = []
     // if the guard hasn't decided who to choose
     if (target_id === null) {
@@ -521,9 +484,7 @@ function generateGuardMessage(data, step) {
  * @param step
  */
 function generateSeerMessage(data, step) {
-    console.log("in seer messages")
     let target_id = data['target_id']
-    console.log(`target_id ${target_id}`)
     let message = []
     // if the seer hasn't decided who to choose
     if (target_id === null) {
@@ -678,7 +639,6 @@ function removeAnyConfirmBtn() {
 }
 
 function updateWithPlayersOut(outPlayersId) {
-    console.log(`update out player ${outPlayersId}`)
     let img = document.getElementById('avatar_' + outPlayersId + '_img')
     if (img) {
         img.src = '/static/werewolves/images/out.png'
@@ -752,7 +712,6 @@ function showNextStepButton(option) {
  */
 function hideNextStepButton() {
     let btn = document.getElementById('next_step_button')
-    console.log(`next step button ${btn}`)
     if (btn && btn.style.display === 'block') {
         btn.style.display = 'none'
         btn.disabled = true
@@ -811,8 +770,29 @@ function sendEndGame() {
     }))
 }
 
-function endGame() {
-   let end_button = document.getElementById('id_end_game_hidden_button')
-   end_button.disabled = false
-   end_button.click()
+function showEndGameBtn() {
+    let end_button = document.getElementById('id_end_game_hidden_button')
+    end_button.style.display = 'block'
+    end_button.disabled = false
 }
+
+
+// Update the count down every 1 second
+// var countDown = setInterval(function() {
+//     // Timer countdown is 2 minutes
+//     var time = 120000
+
+//     // Time calculations for minutes and seconds
+//     var minutes = Math.floor((time % (1000 * 60 * 60)) / (1000 * 60))
+//     var seconds = Math.floor((time % (1000 * 60)) / 1000)
+
+//     // Output the result in an element with id="id_timer"
+//     document.getElementById("id_timer").innerHTML = minutes + "m " + seconds + "s "
+
+//     // If the count down is over, trigger next step
+//     if (time < 0) {
+//       clearInterval(countDown)
+//       // Call next_step here
+//       nextStep(true)
+//     }
+//   }, 1000);
