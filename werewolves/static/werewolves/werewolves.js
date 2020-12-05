@@ -429,8 +429,9 @@ function generateWolvesMessage(data, step) {
     let is_kill = data['message']
     let player = data['current_player_id']
     let sender = data['sender_id']
-    // if the wolf hasn't decide who to choose
+    // if the none of the wolves have decided who to choose
     if (is_kill === "False") {
+        console.log(`${is_kill}`)
         message.push("Now is your time to perform actions. Please choose a player to kill.")
         message.push("All wolves should pick the same player to kill. You can choose to kill no one.")
     }
@@ -638,6 +639,10 @@ function removeAnyConfirmBtn() {
     }
 }
 
+/**
+ * change the avatar of a player if he/she is out of game
+ * @param outPlayersId the id of the out player
+ */
 function updateWithPlayersOut(outPlayersId) {
     let img = document.getElementById('avatar_' + outPlayersId + '_img')
     if (img) {
@@ -645,6 +650,10 @@ function updateWithPlayersOut(outPlayersId) {
     }
 }
 
+/**
+ * add sign to the new speaker and add the finish button
+ * @param data information received from websocket
+ */
 function updateSpeaker(data) {
     removeOldSpeaker()
     let good_speaking_img = '/static/werewolves/images/good_speaking.png'
@@ -666,6 +675,9 @@ function updateSpeaker(data) {
     }
 }
 
+/**
+ * removed the speaking sign of the previous speaker
+ */
 function removeOldSpeaker() {
     let good_speaking_img = '/static/werewolves/images/good_speaking.png'
     let bad_speaking_img = '/static/werewolves/images/bad_speaking.png'
@@ -758,18 +770,27 @@ function updateEndGame(data) {
     guard_img.src = '/static/werewolves/images/guard.png'
 }
 
+/**
+ * triggered when the user clicked on the exit game href
+ */
 function exitGame() {
    chatSocket.send(JSON.stringify({
        'type': 'exit-game-message'
    }))
 }
 
+/**
+ * send messages to websocket to inform clearing out database
+ */
 function sendEndGame() {
     chatSocket.send(JSON.stringify({
         'type': 'end-game-message'
     }))
 }
 
+/**
+ * show the exit game btn to direct user to the rules page
+ */
 function showEndGameBtn() {
     let end_button = document.getElementById('id_end_game_hidden_button')
     end_button.style.display = 'block'
