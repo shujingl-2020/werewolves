@@ -95,7 +95,6 @@ function playerMessage(data, message) {
  * handle system message received from websocket
  */
 function systemMessageHandle(data) {
-    console.log(`type of target id ${typeof target_id}`)
     updateSystemGlobal(data)
     let step = data['step']
     let group = data['group']
@@ -105,7 +104,6 @@ function systemMessageHandle(data) {
     let player_id = data['current_player_id']
     let trigger_id = data['trigger_id']
     let status = data['current_player_status']
-    console.log(`trigger id ${trigger_id}`)
     let speaker_id = data['speaker_id']
     // generate system message according to step.
     if (!(step === "SPEECH" && speaker_id === null)) {
@@ -361,10 +359,9 @@ function generateGeneralMessage(data, step) {
         message = "It is day time."
     } else if (step === "ANNOUNCE") {
         let out_player_id = data['out_player_id']
-        if (out_player_id !== '0') {
-            let target_name = data['target_name']
-            message = "Last night, player " + out_player_id + " " + target_name + " gets killed."
-        } else if (out_player_id === '0') {
+        if (out_player_id !== 0) {
+            message = "Last night, player " + out_player_id + " gets killed."
+        } else if (out_player_id === 0) {
             console.log(`out_player_id in announce ${out_player_id}`)
             message = "Last night, nobody gets killed."
         }
@@ -386,7 +383,7 @@ function generateGeneralMessage(data, step) {
             message = "Now each player can make a vote. You can abstain from voting if you don't make a choice."
         } else if (player_id === sender_id && target_id !== "0") {
             message = "You voted player " + target_id + "."
-        } else if (player_id === sender_id && target_id == 0) {
+        } else if (player_id === sender_id && target_id === 0) {
             console.log(`target id if abstain ${target_id}`)
             message = "You abstained from voting."
         }
@@ -396,7 +393,7 @@ function generateGeneralMessage(data, step) {
         for (let i = 0; i < votes.length; i++) {
             let player_id = String(i + 1)
             let vote_id = votes[i]
-            if (vote_id == 0) {
+            if (vote_id === 0) {
                 console.log(`in vote ${vote_id}`)
                 message += "Player " + player_id + " abstained from voting \n"
             } else if (vote_id !== 'X') {
@@ -404,7 +401,7 @@ function generateGeneralMessage(data, step) {
             }
         }
         let out_player_id = data['out_player_id']
-        if (out_player_id == 0) {
+        if (out_player_id === 0) {
             message += "Nobody gets voted out.\n"
         } else {
             message += "Player" + out_player_id + +" is voted out.\n"
@@ -428,7 +425,7 @@ function generateGeneralMessage(data, step) {
  * @param step
  */
 function generateWolvesMessage(data, step) {
-    console.log("in wolevs messages")
+    console.log("in wolves messages")
     // target_id is the target that an individual wolf selects
     let player_id = data['current_player_id']
     let sender_id = data['sender_id']
@@ -438,11 +435,11 @@ function generateWolvesMessage(data, step) {
     let out_player_id = data['out_player_id']
     console.log(`out_player_id ${out_player_id}`)
     let message = ""
-    let kill = data['kill']
+    let is_kill = data['message']
     let player = data['current_player_id']
     let sender = data['sender_id']
     // if the wolf hasn't decide who to choose
-    if (kill === "XX") {
+    if (is_kill === "False") {
         message = "Now is your time to perform actions. Please choose a player to kill. \n All wolves should pick the same player to kill. You can choose to kill no one."
     }
     // if the wolves didn't pick the same target
@@ -477,7 +474,7 @@ function generateGuardMessage(data, step) {
         message += "Note that you can not protect the same player consecutively, and you can choose to protect nobody."
     }
     // if the guard picked a target
-    else if (target_id == 0) {
+    else if (target_id === 0) {
         message = "You chose to protect no one"
     }
     // if the guard did not pick any target
@@ -569,10 +566,12 @@ function updateGameStatus(id) {
 function nextStep() {
     hideNextStepButton()
     /* send from websocket */
+    let sender_id = systemGlobal.current_player_id
     chatSocket.send(JSON.stringify({
         'type': 'system-message',
         'times_up': "False",
         'update': 'next_step',
+        'sender_id': sender_id
     }))
 }
 
