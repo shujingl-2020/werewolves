@@ -10,15 +10,9 @@ class ChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         self.general_group = "general_group"  # all players are in this group
         self.wolves_group = "wolves_group"  # all wolves are in this group
-        self.seer_group = "seer_group"  # seer is in this group
-        self.guard_group = "guard_group"  # guard is in this group
 
         user = self.scope["user"]
-        #print("in connect     user:", user)
         role = await database_sync_to_async(self.get_current_player_role)()
-        # num_players = await database_sync_to_async(self.check_num_players)()
-        # if num_players < 6:
-        # Put all players in the general group
 
         await self.channel_layer.group_add(
             self.general_group,
@@ -30,16 +24,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 self.wolves_group,
                 self.channel_name
             )
-        elif (role == "GUARD"):
-            await self.channel_layer.group_add(
-                self.guard_group,
-                self.channel_name
-            )
-        elif (role == "SEER"):
-            await self.channel_layer.group_add(
-                self.seer_group,
-                self.channel_name
-            )
+
 
         # TODO: this will call init_game_status 6 times, could be updated
         if (role != None):
@@ -118,54 +103,15 @@ class ChatConsumer(AsyncWebsocketConsumer):
             update = text_data_json['update']
             sender_id = text_data_json['sender_id']
             print("update: ", update)
-            #print("sender_id:", sender_id)
+
             if update == 'update':
                 target_id = text_data_json['target_id']
                 await database_sync_to_async(self.update_status)(target_id=target_id, times_up=False)
-                # if (target_id != None):
-                # await database_sync_to_async(self.update_status)(target_id=target_id, times_up=False)
-                # await database_sync_to_async(self.next_step)(times_up=False)
             elif update == 'next_step':
                 await database_sync_to_async(self.next_step)(times_up=False)
             # Send system message to different groups
 
-            #game = await database_sync_to_async(self.get_game_status)()
             #role = await database_sync_to_async(self.get_current_player_role)()
-
-            # print("game_step: ", game.step)
-            '''
-            if (game.step == "SEER"):
-                await self.channel_layer.group_send(
-                    self.seer_group,
-                    {
-                        'type': 'system_message',
-                        'group': 'seer',
-                        'sender_id': sender_id,
-                    }
-                )
-                # print("end seer send")
-            if (game.step == "WOLF"):
-                await self.channel_layer.group_send(
-                    self.wolves_group,
-                    {
-                        'type': 'system_message',
-                        'group': 'wolves',
-                        'sender_id': sender_id,
-                    }
-                )
-                # print("end wolf send")
-            if (game.step == "GUARD"):
-                await self.channel_layer.group_send(
-                    self.guard_group,
-                    {
-                        'type': 'system_message',
-                        'group': 'guard',
-                        'sender_id': sender_id,
-                    }
-                )
-                #print("end guard send")
-            '''
-
             await self.channel_layer.group_send(
                 self.general_group,
                 {
@@ -175,7 +121,9 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 }
             )
 
-            await database_sync_to_async(self.clean_action)()
+            game = await database_sync_to_async(self.get_game_status)()
+            if (game.step == "END_DAY"):
+                await database_sync_to_async(self.clean_action)()
             #print("end general send")
         # chat message
         elif message_type == 'chat-message':
@@ -220,6 +168,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     'message': 'exit_game'
                 }
             )
+        elif message_type == "end-game-message":
+            await database_sync_to_async(self.clear_database)()
 
     '''join waiting room feature'''
 
@@ -340,25 +290,14 @@ class ChatConsumer(AsyncWebsocketConsumer):
             game = GameStatus.objects.select_for_update().last()
         else:
             game = GameStatus()
-        # game = GameStatus()
         game.wolves_select = None
-        #game.wolves_target = None
-        #game.wolves_target_name = None
         game.guard_select = None
         game.guard_previous_id = None
-        #game.guard_target = None
-        #game.guard_target_name = None
         game.seer_select = None
-        #game.seer_target = None
-        #game.seer_target_name = None
         game.seer_target_role = None
         game.vote_select = None
-        #game.vote_target = None
-        #game.vote_target_name = None
         game.first_speaker_id = None
         game.speaker_id = None
-        #game.current_speaker = None
-        #game.current_speaker_name = None
         game.current_speaker_role = None
         game.step = "END_DAY"
         game.winning = None
@@ -405,15 +344,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     pass
 
                 new_status.wolves_select, new_status.is_kill = self.valid_kill_target()
-                #print("     new_status.wolves: ",
-                      #new_status.wolves_select, "is_kill:", new_status.is_kill)
-
-            #if (new_status.wolves_select != None):
-                #if (new_status.wolves_select > 0):
-                    #new_status.wolves_target = Player.objects.get(
-                    #    id_in_game=new_status.wolves_select)
-                    #new_status.wolves_target_name = Player.objects.get(
-                        #id_in_game=new_status.wolves_select).user.username
         elif (game.step == "GUARD"):
             if (times_up):
                 if (game.guard_select == None):
@@ -425,30 +355,15 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     new_status.guard_select = guard_id
                 else:
                     new_status.guard_select = None
-
-            #print("     new_status.guard: ", new_status.guard_select)
-            #if (new_status.guard_select != None):
-                #if (new_status.guard_select > 0):
-                    #new_status.guard_target = Player.objects.get(
-                    #    id_in_game=new_status.guard_select)
-                    #print("")
-                    #new_status.guard_target_name = Player.objects.get(
-                        #id_in_game=new_status.guard_select).user.username
         elif (game.step == "SEER"):
             if (times_up):
                 if (game.seer_select == None):
                     new_status.seer_select = 0
-                # new_status.step = "END_NIGHT"
             else:
                 new_status.seer_select = self.valid_target(target_id)
-                #print("     new_status.seer: ", new_status.seer_select)
 
             if (new_status.seer_select != None):
                 if (new_status.seer_select > 0):
-                    #new_status.seer_target = Player.objects.get(
-                    #    id_in_game=new_status.seer_select)
-                    #new_status.seer_target_name = Player.objects.get(
-                        #id_in_game=new_status.seer_select).user.username
                     new_status.seer_target_role = Player.objects.get(
                         id_in_game=new_status.seer_select).role
         elif (game.step == "VOTE"):
@@ -458,11 +373,9 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     for player in players:
                         if (player.vote == None):
                             player.vote = 0
-                # new_status.step = "END_VOTE"
             else:
                 try:
                     player = Player.objects.select_for_update().get(user=user)
-                    # vote_player = Player.objects.select_for_update().get(user=user)
                     if (target_id == None):
                         player.vote = 0
                     else:
@@ -475,17 +388,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
             new_status.vote_select, new_status.vote = self.voted_player()
 
-            #print("     vote:", new_status.vote)
-
-            #if (new_status.vote_select != None):
-                #if (new_status.vote_select > 0):
-                    #new_status.vote_target = Player.objects.get(
-                    #    id_in_game=new_status.vote_select)
-                    #new_status.vote_target_name = Player.objects.get(
-                        #id_in_game=new_status.vote_select).user.username
-        #elif (game.step == "END_DAY"):
-        #    self.clean_action()
-
         game = new_status
         game.trigger_id = self.get_trigger_id()
         game.save()
@@ -496,7 +398,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
     # if select is not valid, return None
     # if select is valid, return traget_id
     def valid_target(self, target_id):
-        #print("in valid_target, id:", target_id)
         if (target_id == None):
             return 0
         elif (target_id == 0):
@@ -514,12 +415,10 @@ class ChatConsumer(AsyncWebsocketConsumer):
         #print("in valid_kill_target")
         kill_string = "False"
         try:
-            # if (1):
             wolves = Player.objects.filter(role="WOLF")
             i = 0
             kill_target = None
             for wolf in wolves:
-                # print(wolf)
                 if (wolf.status == "ALIVE"):
                     #print("     i:", i, " wolf.kill:", wolf.kill)
                     if (wolf.kill != None):
@@ -547,7 +446,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
             return None, kill_string
 
     def voted_player(self):
-        print("in voted_player:")
         game = GameStatus.objects.last()
         vote_string = game.vote
         vote_list = list(vote_string)
@@ -618,8 +516,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
                         if (game.guard_select != None):
                             if (game.guard_select > 0 and game.guard_select == game.wolves_select):
                                 new_status.wolves_select = 0
-                                #new_status.wolves_target_name = None
-                                #new_status.wolves_target = None
                             else:
                                 player = Player.objects.select_for_update().get(
                                     id_in_game=game.wolves_select)
@@ -634,7 +530,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 new_status.step = "ANNOUNCE"
 
         elif (game.step == "ANNOUNCE"):
-
 
             new_status.winning = self.is_end_game()
             if (new_status.winning == None):
@@ -656,9 +551,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 print("     speaker_id:", new_status.speaker_id)
                 if (new_status.speaker_id != None):
                     if (new_status.speaker_id > 0):
-
-                        #new_status.current_speaker_name = Player.objects.get(
-                        #    id_in_game=new_status.speaker_id).user.username
                         new_status.current_speaker_role = Player.objects.get(
                             id_in_game=new_status.speaker_id).role
                         player = Player.objects.select_for_update().get(id_in_game=new_status.speaker_id)
@@ -670,7 +562,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             if (game.vote_select == None):
                 new_status.step = "VOTE"
             else:
-                # if (game.vote_select != None):
+
                 print("     vote_select:", game.vote_select, " vote:", game.vote)
                 new_status.step = "END_VOTE"
                 if (game.vote_select > 0):
@@ -678,17 +570,10 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     player.status = "OUT"
                     player.save()
 
-                # new_status.winning = self.is_end_game()
-                # if (new_status.winning == None):
-                #    new_status.step = "END_VOTE"
-                # else:
-                #    new_status.step = "END_GAME"
+
 
         elif (game.step == "END_VOTE"):
-            # if (game.vote_target > 0):
-            #    player = Player.objects.select_for_update(id_in_game=game.vote_target)
-            #    player.status = "OUT"
-            #    player.save()
+
 
             new_status.winning = self.is_end_game()
             if (new_status.winning == None):
@@ -708,141 +593,70 @@ class ChatConsumer(AsyncWebsocketConsumer):
     ''' system message feature'''
 
     #   send system_message based on groups and steps
-    #   groups include:
-    #       general group,
-    #       wolves group,
-    #       guard group,
-    #       seer group,
-    #
     async def system_message(self, event):
         game = await database_sync_to_async(self.get_game_status)()
         message = ""
         group = event['group']
-        #print("system_message event:", event)
         sender_id = event['sender_id']
-        #sender_id = 0
+
         step = game.step
         out_player_id = None
         user = self.scope['user']
-        # print("in system message")
-        # print("     user:", user)
+
         print("sys_msg     group:", group, " step: ", step, " user: ", user)
         current_player = await database_sync_to_async(self.get_current_player)()
-        # current_player = await sync_to_async(Player.objects.get, thread_sensitive=True)(user=user)
-        # current_player = Player.objects.filter(id_in_game = 1)
-        # print("     current_player", current_player.id)
+
         current_player_id = current_player.id_in_game
         current_player_role = current_player.role
         current_player_status = current_player.status
-        #current_player_name = await database_sync_to_async(self.get_player_username)(id=current_player_id)
-        # current_player_name = current_player.user.username
+
         speaker_id = None
         current_speaker_role = None
-        #current_speaker_name = None
+
         all_players_vote = game.vote
         target_id = None
-        #target_name = None
+
         seer_id = None
         guard_id = None
         wolf_id = None
         villager_id = None
         message = None
-        #is_kill = game.is_kill
+
         trigger_id = game.trigger_id
         
-        #trigger_id = await database_sync_to_async(self.get_trigger_id)()
-
-        #all_players_vote = [-1,-1,-1,-1,-1,-1]
-
-        if (group == "general"):
-            if (step == "ANNOUNCE"):
-                out_player_id = game.wolves_select
-                #target_name = game.wolves_target_name
-            elif (step == "SPEECH"):
-                #target_id = game.first_speaker_id
-                speaker_id = game.speaker_id
-                # print("     speaker_id:", speaker_id)
-                # current_speaker = await sync_to_async(Player.objects.get, thread_sensitive=True)(id_in_game=game.current_speaker)
-                if (speaker_id != None):
-                    if (speaker_id > 0):
-                        current_speaker_role = game.current_speaker_role
-                        #current_speaker_name = game.current_speaker_name
-                        # current_speaker_role = game.current_speaker.role
-                        # current_speaker_name = game.current_speaker.name
-            elif (step == "VOTE"):
-                target_id = current_player.vote
-                out_player_id = game.vote_select
-                #all_players_vote = game.vote
-            elif (step == "END_VOTE"):
-                out_player_id = game.vote_select
-                #all_players_vote = game.vote
-                #all_players_vote = await database_sync_to_async(self.get_player_id_string("VOTE"))
-            elif (step == "END_GAME"):
-                seer_id = game.seer
-                guard_id = game.guard
-                wolf_id = game.wolves
-                villager_id = game.villagers
-                message = game.winning
-            elif (step == "WOLF"):
-                message = game.is_kill
-                target_id = current_player.kill
-                out_player_id = game.wolves_select
-                #target_id = current_player.kill
-                #target_id = await database_sync_to_async(self.select_kill_id)()
-                #out_player_id = game.wolves_select
-                #print("     kill: ", kill, "  out_player_id: ", out_player_id)
-                # target_id = game.wolves_select
-                #if (game.wolves_select != None):
-                #    if (game.wolves_select > 0):
-                #        target_name = game.wolves_target_name
-            elif (step == "GUARD"):
-                target_id = game.guard_select
-            elif (step == "SEER"):
-                target_id = game.seer_select
-                if (game.seer_select != None):
-                    if (game.seer_select > 0):
-                    # seer_target_player = await sync_to_async(Player.objects.get, thread_sensitive=True)(id_in_game=game.seer_target)
-                    # role = game.seer_target.role
-                        role = game.seer_target_role
-                    # print("     seer target role:", role)
-                    # role = Player.objects.filter(id_in_game=game.seer_target).role
-                        if (role == "WOLF"):
-                            message = "Bad"
-                        else:
-                            message = "Good"
-        elif (group == "seer" and step == "SEER"):
+        if (step == "ANNOUNCE"):
+            out_player_id = game.wolves_select
+        elif (step == "SPEECH"):
+            speaker_id = game.speaker_id
+            if (speaker_id != None):
+                if (speaker_id > 0):
+                    current_speaker_role = game.current_speaker_role
+        elif (step == "VOTE"):
+            target_id = current_player.vote
+            out_player_id = game.vote_select
+        elif (step == "END_VOTE"):
+            out_player_id = game.vote_select
+        elif (step == "END_GAME"):
+            seer_id = game.seer
+            guard_id = game.guard
+            wolf_id = game.wolves
+            villager_id = game.villagers
+            message = game.winning
+        elif (step == "WOLF"):
+            message = game.is_kill
+            target_id = current_player.kill
+            out_player_id = game.wolves_select
+        elif (step == "GUARD"):
+            target_id = game.guard_select
+        elif (step == "SEER"):
             target_id = game.seer_select
-            # print("     seer_target: ", target_id)
             if (game.seer_select != None):
                 if (game.seer_select > 0):
-                    # seer_target_player = await sync_to_async(Player.objects.get, thread_sensitive=True)(id_in_game=game.seer_target)
-                    # role = game.seer_target.role
                     role = game.seer_target_role
-                    # print("     seer target role:", role)
-                    # role = Player.objects.filter(id_in_game=game.seer_target).role
                     if (role == "WOLF"):
                         message = "Bad"
                     else:
                         message = "Good"
-            # print("     seer message: ", message)
-
-        elif (group == "wolves" and step == "WOLF"):
-            target_id = current_player.kill
-            out_player_id = game.wolves_select
-            message = game.is_kill
-            #print("     wolves_target: ", target_id, "  out_player_id: ", out_player_id)
-            # target_id = game.wolves_select
-            #if (game.wolves_select != None):
-            #    if (game.wolves_select > 0):
-            #        target_name = game.wolves_target_name
-                    # target_name = await database_sync_to_async(self.get_player_username)(id=game.wolves_select)
-        elif (group == "guard" and step == "GUARD"):
-            target_id = game.guard_select
-            #print("     guard_target: ", target_id)
-            #if (game.guard_select != None):
-            #    if (game.guard_select > 0):
-            #        target_name = game.guard_target_name
-                    # target_name = await database_sync_to_async(self.get_player_username)(id=game.guard_select)
 
         #print("          group:", group, " step: ", step, " user: ", user)
         await self.send(text_data=json.dumps({
@@ -855,9 +669,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             'current_player_status': current_player_status,
             'speaker_id': speaker_id,
             'current_speaker_role': current_speaker_role,
-            #'current_speaker_name': current_speaker_name,
             'target_id': target_id,  # in step vote, it is the voted player
-            #'target_name': target_name,  # out player username
             'trigger_id': trigger_id,
             'sender_id': sender_id,
             'seer_id': seer_id,
@@ -865,11 +677,9 @@ class ChatConsumer(AsyncWebsocketConsumer):
             'wolf_id': wolf_id,
             'villager_id': villager_id,
             'all_players_vote': all_players_vote,
-            #'is_kill': is_kill,
             'message': message,  # in step seer, good/bad person
         }))
 
-        #print("         end group send")
 
     def get_trigger_id(self):
         players = Player.objects.all()
@@ -966,37 +776,35 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
         return True
 
-    def clean_action(self):
-
-        print("in clean_action")
-
+    def clear_database(self):
         #game = GameStatus.objects.last()
+        if (GameStatus.objects.count() > 0):
+        #if (game.step == "END_GAME"):
+            print("clear_database, user:", self.scope['user'])
+            GameStatus.objects.all().delete()
+            Player.objects.all().delete()
+
+    def clean_action(self):
         game = GameStatus.objects.select_for_update().last()
-        if (game.step == "END_DAY") :
-            players = Player.objects.all()
-            for player in players:
-                player.vote = None
-                player.kill = None
-                player.speech = False
-                player.save()
-            game.wolves_select = None
-        #game.wolves_target_name = None
-            game.guard_select = None
-            #game.guard_previous_id = None
-        #game.guard_target_name = None
-            game.seer_select = None
-        #game.seer_target_name = None
-            game.seer_target_role = None
-            game.vote_select = None
-        #game.vote_target_name = None
-            game.first_speaker_id = None
-            game.speaker_id = None
-        #game.current_speaker_name = None
-            game.current_speaker_role = None
-            game.vote = "XXXXXX"
-            game.is_kill = "False"
-            game.trigger_id = self.get_trigger_id()
-            #game.save()
+        #if (game.step == "END_DAY") :
+        print("in clean_action")
+        players = Player.objects.all()
+        for player in players:
+            player.vote = None
+            player.kill = None
+            player.speech = False
+            player.save()
+        game.wolves_select = None
+        game.guard_select = None
+        game.seer_select = None
+        game.seer_target_role = None
+        game.vote_select = None
+        game.first_speaker_id = None
+        game.speaker_id = None
+        game.current_speaker_role = None
+        game.vote = "XXXXXX"
+        game.is_kill = "False"
+        game.trigger_id = self.get_trigger_id()
         game.save()
         print("end in clean_action")
 
