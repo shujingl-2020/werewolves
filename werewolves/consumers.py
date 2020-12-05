@@ -19,6 +19,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         # num_players = await database_sync_to_async(self.check_num_players)()
         # if num_players < 6:
         # Put all players in the general group
+
         await self.channel_layer.group_add(
             self.general_group,
             self.channel_name
@@ -42,6 +43,10 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
         # TODO this will call init_game_status 6 times, could be updated
         if (role != None):
+            await self.channel_layer.group_add(
+                self.general_group,
+                self.channel_name
+            )
             await database_sync_to_async(self.init_game_status)()
             count = await database_sync_to_async(self.game_objects_count)()
             if (count >= 6):
@@ -128,6 +133,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             role = await database_sync_to_async(self.get_current_player_role)()
 
             # print("game_step: ", game.step)
+            '''
             if (game.step == "SEER"):
                 await self.channel_layer.group_send(
                     self.seer_group,
@@ -158,6 +164,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     }
                 )
                 #print("end guard send")
+            '''
 
             await self.channel_layer.group_send(
                 self.general_group,
@@ -681,8 +688,9 @@ class ChatConsumer(AsyncWebsocketConsumer):
             else:
                 new_status.step = "END_GAME"
         elif (game.step == "END_DAY"):
-            new_status.step = "WOLF"
+            #new_status.step = "WOLF"
             self.clean_action()
+            new_status.step = "WOLF"
 
         game = new_status
         game.trigger_id = self.get_trigger_id()
@@ -769,6 +777,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 message = game.winning
             elif (step == "WOLF"):
                 message = game.is_kill
+                target_id = current_player.kill
+                out_player_id = game.wolves_select
                 #target_id = current_player.kill
                 #target_id = await database_sync_to_async(self.select_kill_id)()
                 #out_player_id = game.wolves_select
@@ -781,6 +791,17 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 target_id = game.guard_select
             elif (step == "SEER"):
                 target_id = game.seer_select
+                if (game.seer_select != None):
+                    if (game.seer_select > 0):
+                    # seer_target_player = await sync_to_async(Player.objects.get, thread_sensitive=True)(id_in_game=game.seer_target)
+                    # role = game.seer_target.role
+                        role = game.seer_target_role
+                    # print("     seer target role:", role)
+                    # role = Player.objects.filter(id_in_game=game.seer_target).role
+                        if (role == "WOLF"):
+                            message = "Bad"
+                        else:
+                            message = "Good"
         elif (group == "seer" and step == "SEER"):
             target_id = game.seer_select
             # print("     seer_target: ", target_id)
@@ -839,6 +860,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
             #'is_kill': is_kill,
             'message': message,  # in step seer, good/bad person
         }))
+
+        #print("         end group send")
 
     def get_trigger_id(self):
         players = Player.objects.all()
@@ -937,6 +960,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     def clean_action(self):
 
+        print("in clean_action")
         players = Player.objects.all()
         for player in players:
             player.vote = None
@@ -944,7 +968,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
             player.speech = False
             player.save()
 
-        game = GameStatus.objects.select_for_update().last()
+        game = GameStatus.objects.last()
+        #game = GameStatus.objects.select_for_update().last()
         game.wolves_select = None
         #game.wolves_target_name = None
         game.guard_select = None
@@ -963,6 +988,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         game.is_kill = "False"
         game.trigger_id = self.get_trigger_id()
         game.save()
+        print("end in clean_action")
 
     def get_player_id_string(self, role):
         id_string = ""
