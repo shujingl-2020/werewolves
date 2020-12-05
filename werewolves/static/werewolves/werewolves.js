@@ -142,6 +142,7 @@ function systemMessageHandle(data) {
     }
     if (step === 'END_GAME') {
         updateEndGame(data)
+        endGame()
     } else if (step === 'ANNOUNCE' || step === 'END_VOTE') {
         console.log(`in announce ${out_player_id}`)
         if (out_player_id !== null) {
@@ -552,16 +553,20 @@ function generateSeerMessage(data, step) {
  * add each message separately.
  */
 function displayMessages(messages) {
-    var heartbeatInterval = setInterval(function() {
-        // if we still have messages to show
-        if (messages.length > 0) {
-            // display the next message from the array
-            addSystemMessage(messages.shift())
-        } else {
-            // clear the interval, we don't have any messages left to display
-            clearInterval(heartbeatInterval);
-        }
-    }, 2000)
+    // var heartbeatInterval = setInterval(function() {
+    //     // if we still have messages to show
+    //     if (messages.length > 0) {
+    //         // display the next message from the array
+    //         addSystemMessage(messages.shift())
+    //     } else {
+    //         // clear the interval, we don't have any messages left to display
+    //         clearInterval(heartbeatInterval);
+    //     }
+    // }, 1000)
+    for (message of messages) {
+        addSystemMessage(message)
+        wait(1000)
+    }
 }
 
 /**

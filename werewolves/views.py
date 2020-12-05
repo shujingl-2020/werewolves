@@ -26,10 +26,7 @@ def rulespage_action(request):
 def waitingroom_action(request):
     if request.method == 'GET':
         player_count = Player.objects.count()
-<<<<<<< Updated upstream
         context = {}
-=======
->>>>>>> Stashed changes
         if player_count >= 6:
             # If there are more than 6 players, do not allow new player
             # to enter the waiting room
