@@ -133,7 +133,7 @@ function systemMessageHandle(data) {
         let systemMessages = generateSystemMessage(data, step)
         // show message in the chatbox.
         if (step === "END_DAY" || step === "ANNOUNCE" || step === "END_VOTE" || step === 'END_GAME') {
-            wait(3000)
+            wait(1500)
             displayMessages(systemMessages)
         } else {
             displayMessages(systemMessages)
@@ -187,8 +187,8 @@ function systemMessageHandle(data) {
         || (step !== "WOLF" && step === role && target_id === null)) {
         if (status === "ALIVE") {
             showNextStepButton("night")
-        } else {
-            wait(3000)
+        } else if (status === "OUT" && step !== "WOLF"){
+            wait(5000)
             updateGameStatus(null)
         }
     }
@@ -470,22 +470,20 @@ function generateWolvesMessage(data, step) {
         message.push("All wolves should pick the same player to kill. You can choose to kill no one.")
     }
     // if the wolves didn't pick the same target
-    else if (player === sender) {
-        if (out_player_id === null) {
-            if (target_id !== 0) {
-                message.push("You chose to kill player " + target_id + ", but your teammate chose a different target.")
-                message.push("All wolves should pick the same player to kill. You can have a discussion in the chat to decide a common target.")
-            } else {
-                message.push("You chose to kill no one, but your teammate selected a target.")
-                message.push("Wolves should have a common target. You can have a discussion in the chat to decide a common target.")
-            }
+    if (out_player_id === null) {
+        if (target_id !== 0 && player === sender) {
+            message.push("You chose to kill player " + target_id + ", but your teammate chose a different target.")
+            message.push("All wolves should pick the same player to kill. You can have a discussion in the chat to decide a common target.")
+        } else if (arget_id === 0 && player === sender){
+            message.push("You chose to kill no one, but your teammate selected a target.")
+            message.push("Wolves should have a common target. You can have a discussion in the chat to decide a common target.")
         }
-        // if the wolves picked a target
-        else if (out_player_id === 0) {
-            message.push("You chose to kill no one.")
-        } else {
-            message.push("You chose to kill player " + out_player_id + ".")
-        }
+    }
+    // if the wolves picked a target
+    else if (out_player_id === 0) {
+        message.push("You chose to kill no one.")
+    } else {
+        message.push("You chose to kill player " + out_player_id + ".")
     }
     return message
 }
@@ -591,7 +589,11 @@ function addSystemMessage(message) {
 // *
 // */
 function updateGameStatus(id) {
-    hideConfirmBtn(id);
+    if(id === null) {
+        removeAnyConfirmBtn()
+    } else {
+        hideConfirmBtn(id);
+    }
     let sender_id = systemGlobal.current_player_id
     chatSocket.send(JSON.stringify({
         'type': 'system-message',
@@ -659,6 +661,19 @@ function hideConfirmBtn(id) {
     if (confirm_btn) {
         confirm_btn.style.display = 'none'
         confirm_btn.disabled = true
+    }
+}
+
+/**
+ * when the next step button is clicked, confirm button should be removed, too
+ */
+function removeAnyConfirmBtn() {
+    for (let i = 1; i <= 6; i++) {
+        let confirm_btn = document.getElementById('confirm_button_' + String(i))
+        if (confirm_btn.style.display === 'block') {
+            confirm_btn.style.display = 'none'
+            confirm_btn.disabled = true
+        }
     }
 }
 
