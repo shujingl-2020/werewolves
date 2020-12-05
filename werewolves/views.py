@@ -47,7 +47,6 @@ def start_game_action(request):
         # get the number and username of all the players
         # to avoid the situation when the player id is random in the database, we will manually create id
         players = Player.objects.all()
-        print(f'assigned roles and ids in views {players}')
         for player in players:
                 id = str(player.id_in_game)
                 context['num' + id ] = id

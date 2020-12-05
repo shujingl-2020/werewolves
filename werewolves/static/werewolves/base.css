@@ -85,7 +85,7 @@ table {
 
 .players-label {
    text-align: center;
-    padding-left: 0px !important;
+    padding-left: 0 !important;
 }
 
 .player-list{
@@ -95,6 +95,7 @@ table {
 .player-num{
    margin-top: 150px;
 }
+
 
 /*game page*/
 
@@ -110,15 +111,15 @@ img {
 }
 
 .row {
-   margin-left: 0px !important;
-   margin-right: 0px !important;
+   margin-left: 0 !important;
+   margin-right: 0 !important;
    margin-bottom: 10px;
 }
 
 #chatbox {
     text-align:left;
     margin-top: 20px;
-    margin-bottom:0px;
+    margin-bottom:0;
     padding: 20px 20px 20px 20px;
     background:#fff;
     height:450px;
@@ -138,9 +139,8 @@ img {
    border: 2.5px solid black;
    box-sizing: border-box ;
    border-radius: 4px;
-   margin: 15px 0px;
+   margin: 15px 0;
    font-size:large;
-   align-middle
 }
 
 #message_button {
@@ -177,9 +177,15 @@ img {
    font-size: 15px;
 }
 
-#finish_button {
-   width: 120px;
-   font-size: 18px;
+#next_step_button {
+    margin-top: 50px;
+    margin-left: 50px;
+    width: 120px;
+    font-size: 16px;
+    border-radius: 3px;
+    border-width: 0.5px;
+    padding: 5px 5px;
+    text-align: center;
 }
 
 .button-container {
@@ -189,6 +195,7 @@ img {
 .message-time {
   font-family: Arial, Helvetica, sans-serif;
 }
+
 
 .system-message {
    font-family: Arial, Helvetica, sans-serif;
