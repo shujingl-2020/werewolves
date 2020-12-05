@@ -120,7 +120,6 @@ function playerMessage(data, message) {
 function systemMessageHandle(data) {
     updateSystemGlobal(data)
     let step = data['step']
-    let group = data['group']
     let role = data['current_player_role']
     let target_id = data['target_id']
     let out_player_id = data['out_player_id']
@@ -142,6 +141,7 @@ function systemMessageHandle(data) {
     }
     if (step === 'END_GAME') {
         updateEndGame(data)
+        sendEndGame()
         endGame()
     } else if (step === 'ANNOUNCE' || step === 'END_VOTE') {
         console.log(`in announce ${out_player_id}`)
@@ -553,19 +553,9 @@ function generateSeerMessage(data, step) {
  * add each message separately.
  */
 function displayMessages(messages) {
-    // var heartbeatInterval = setInterval(function() {
-    //     // if we still have messages to show
-    //     if (messages.length > 0) {
-    //         // display the next message from the array
-    //         addSystemMessage(messages.shift())
-    //     } else {
-    //         // clear the interval, we don't have any messages left to display
-    //         clearInterval(heartbeatInterval);
-    //     }
-    // }, 1000)
     for (message of messages) {
         addSystemMessage(message)
-        wait(1000)
+        wait(500)
     }
 }
 
@@ -798,6 +788,12 @@ function exitGame() {
    chatSocket.send(JSON.stringify({
        'type': 'exit-game-message'
    }))
+}
+
+function sendEndGame() {
+    chatSocket.send(JSON.stringify({
+        'type': 'end-game-message'
+    }))
 }
 
 function endGame() {
