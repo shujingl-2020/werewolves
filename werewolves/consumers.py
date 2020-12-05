@@ -50,6 +50,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     {
                         'type': 'system_message',
                         'group': 'general',
+                        'sender_id': 0,
                     }
                 )
 
@@ -112,6 +113,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             update = text_data_json['update']
             sender_id = text_data_json['sender_id']
             print("update: ", update)
+            #print("sender_id:", sender_id)
             if update == 'update':
                 target_id = text_data_json['target_id']
                 await database_sync_to_async(self.update_status)(target_id=target_id, times_up=False)
@@ -677,7 +679,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             self.clean_action()
 
         game = new_status
-        game.trigger_id = self.trigger_id()
+        game.trigger_id = self.get_trigger_id()
         # new_status.save()
         game.save()
 
@@ -693,7 +695,10 @@ class ChatConsumer(AsyncWebsocketConsumer):
     async def system_message(self, event):
         game = await database_sync_to_async(self.get_game_status)()
         message = ""
-        group = event["group"]
+        group = event['group']
+        #print("system_message event:", event)
+        sender_id = event['sender_id']
+        #sender_id = 0
         step = game.step
         out_player_id = None
         user = self.scope['user']
@@ -722,7 +727,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         message = None
         #is_kill = game.is_kill
         trigger_id = game.trigger_id
-        sender_id = event["sender_id"]
+        
         #trigger_id = await database_sync_to_async(self.get_trigger_id)()
 
         #all_players_vote = [-1,-1,-1,-1,-1,-1]
