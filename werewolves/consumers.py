@@ -41,6 +41,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                         'sender_id': 0,
                     }
                 )
+            print("send first message")
 
         # Check whether a user is logged in
         if self.scope["user"].is_anonymous:
@@ -82,6 +83,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
         # start game message
         elif message_type == 'start-game-message':
+            print("start message")
             # assign roles and id in game for players
             await database_sync_to_async(self.assign_roles_and_ids)()
             await self.channel_layer.group_send(
@@ -94,6 +96,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
         # system message
         elif message_type == 'system-message':
+            print("receive system message")
             update = text_data_json['update']
             sender_id = text_data_json['sender_id']
             #handle selected player id 
@@ -227,6 +230,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     #   send system_message based on game status
     async def system_message(self, event):
+        print("in system message")
         game = await database_sync_to_async(self.get_game_status)()
         step = game.step
         all_players_vote = game.vote
@@ -321,9 +325,10 @@ class ChatConsumer(AsyncWebsocketConsumer):
             'all_players_vote': all_players_vote,  #a string contains voting result for all players
             'message': message,  # in step seer, good/bad person; in step wolf, if a wolf select a target
         }))
+        print("end send system message")
 
 
-    # create a chat message
+# create a chat message
     def create_message(self, message):
         message_sender = self.scope["user"]
         message_text = message

@@ -42,6 +42,7 @@ chatSocket.onmessage = function (e) {
     } else if (message_type === 'start_game_message') {
         startGame()
     } else if (message_type === 'system_message') {
+        // console.log(`handle system message`)
         systemMessageHandle(data)
     } else if (message_type === 'chat_message') {
         let username = data['username']
@@ -106,6 +107,7 @@ function systemMessageHandle(data) {
     let out_player_id = data['out_player_id']
     let player_id = data['current_player_id']
     let trigger_id = data['trigger_id']
+    // console.log(`trigger id ${trigger_id}`)
     let status = data['current_player_status']
     let speaker_id = data['speaker_id']
     // generate system message according to step.
@@ -113,7 +115,7 @@ function systemMessageHandle(data) {
         let systemMessages = generateSystemMessage(data, step)
         // show message in the chatbox.
         if (step === "END_DAY" || step === "ANNOUNCE" || step === "END_VOTE" || step === 'END_GAME') {
-            wait(1500)
+            wait(2000)
             displayMessages(systemMessages)
         } else {
             displayMessages(systemMessages)
@@ -155,13 +157,15 @@ function systemMessageHandle(data) {
             hideNextStepButton();
         }
         if (player_id === trigger_id) {
-            nextStep()
-        }
+                // console.log(`next step for end day`)
+                nextStep()
+         }
     } else if ((step === "WOLF" && step === role && out_player_id === null)
         || (step !== "WOLF" && step === role && target_id === null)) {
         if (status === "ALIVE") {
             showNextStepButton("night")
         } else if (status === "OUT" && step !== "WOLF"){
+            // console.log(`status ${status}`)
             wait(5000)
             updateGameStatus(null)
         }
@@ -315,6 +319,7 @@ function addChatMessage(message, username, id) {
  * @param step: current game step
  */
 function generateSystemMessage(data, step) {
+    // console.log(`generate system message`)
     let message = []
     // let group = data['group']
     let role = data['current_player_role']
@@ -343,6 +348,7 @@ function generateGeneralMessage(data, step) {
     let role = data['current_player_role']
     let is_kill = data['message']
     //send this message when the the night starts
+    // console.log(`step ${step}`)
     if (step === "END_DAY") {
         message.push("It is night time.")
     }
@@ -515,7 +521,7 @@ function generateSeerMessage(data, step) {
 function displayMessages(messages) {
     for (message of messages) {
         addSystemMessage(message)
-        wait(500)
+        wait(600)
     }
 }
 
@@ -736,11 +742,14 @@ function hideNextStepButton() {
  */
 function updateEndGame(data) {
     let winStatus = data['message']
+    console.log(`winStatus ${winStatus}`)
     let area = document.getElementById('show_end_game')
     let text = ''
-    if (winStatus === 'Win') {
+    if (winStatus === true) {
+        console.log(`winStatus if good people win ${winStatus}`)
         text = 'Good People Won!'
     } else {
+        console.log(`winStatus if werewolves win ${winStatus}`)
         text = 'Werewolves Won!'
     }
     area.innerHTML = text
