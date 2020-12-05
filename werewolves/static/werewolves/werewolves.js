@@ -19,15 +19,14 @@ var systemGlobal = {
     current_player_status: null,
     speaker_id: null,
     current_speaker_role: null,
-    current_speaker_name: null,
     target_id: null,
-    target_name: null,
     trigger_id: null,
     seer_id: null,
     wolf_id: null,
     villager_id: null,
     message: null,
-    all_players_vote: null
+    all_players_vote: null,
+    sender_id: null,
 }
 
 /**
@@ -96,6 +95,7 @@ function playerMessage(data, message) {
  * handle system message received from websocket
  */
 function systemMessageHandle(data) {
+    console.log(`type of target id ${typeof target_id}`)
     updateSystemGlobal(data)
     let step = data['step']
     let group = data['group']
@@ -138,6 +138,7 @@ function systemMessageHandle(data) {
         }
     } else if (step === "VOTE") {
         let all_players_vote = data['all_players_vote']
+        console.log(`all players vote in step vote  ${all_players_vote}`)
         if (all_players_vote === "XXXXXX") {
             removeOldSpeaker()
         }
@@ -181,9 +182,7 @@ function updateSystemGlobal(data) {
     systemGlobal.current_player_role = data['current_player_role']
     systemGlobal.sepaker_id = data['sepaker_id']
     systemGlobal.current_speaker_role = data['current_speaker_role']
-    systemGlobal.current_speaker_name = data['current_speaker_name']
     systemGlobal.target_id = data['target_id']
-    systemGlobal.target_name = data['target_name']
     systemGlobal.trigger_id = data['trigger_id']
     systemGlobal.seer_id = data['seer_id']
     systemGlobal.wolf_id = data['wolf_id']
@@ -191,6 +190,7 @@ function updateSystemGlobal(data) {
     systemGlobal.message = data['message']
     systemGlobal.all_players_vote = data['all_players_vote']
     systemGlobal.current_player_status = data['current_player_status']
+    systemGlobal.sender_id = data['sender_id']
 }
 
 
@@ -320,11 +320,11 @@ function generateSystemMessage(data, step) {
     let group = data['group']
     let role = data['current_player_role']
     let status = data['current_player_status']
-    if (status == "ALIVE" && group === "wolves" && step === "WOLF" && step === role) {
+    if (status === "ALIVE" && group === "wolves" && step === "WOLF" && step === role) {
         message = generateWolvesMessage(data, step)
-    } else if (status == "ALIVE" && group === "guard" && step === "GUARD" && step === role) {
+    } else if (status === "ALIVE" && group === "guard" && step === "GUARD" && step === role) {
         message = generateGuardMessage(data, step)
-    } else if (status == "ALIVE" && group === "seer" && step === "SEER" && step === role) {
+    } else if (status === "ALIVE" && group === "seer" && step === "SEER" && step === role) {
         message = generateSeerMessage(data, step)
     } else if (group === "general") {
         message = generateGeneralMessage(data, step)
@@ -377,10 +377,18 @@ function generateGeneralMessage(data, step) {
         }
     } else if (step === "VOTE") {
         console.log(`target id in vote ${target_id}`)
-        if (target_id === null) {
+        //TODO: Need to distinguish each player
+        let all_players_vote = data['all_players_vote']
+        let player_id = data['current_player_id']
+        let sender_id = data['sender_id']
+        //print this only when nobody has voted
+        if (all_players_vote === "XXXXXX") {
             message = "Now each player can make a vote. You can abstain from voting if you don't make a choice."
-        } else {
+        } else if (player_id === sender_id && target_id !== "0") {
             message = "You voted player " + target_id + "."
+        } else if (player_id === sender_id && target_id == 0) {
+            console.log(`target id if abstain ${target_id}`)
+            message = "You abstained from voting."
         }
     } else if (step === "END_VOTE") {
         // TODO: votes maybe an array of objects
@@ -388,17 +396,18 @@ function generateGeneralMessage(data, step) {
         for (let i = 0; i < votes.length; i++) {
             let player_id = String(i + 1)
             let vote_id = votes[i]
-            if (vote_id === '0') {
+            if (vote_id == 0) {
+                console.log(`in vote ${vote_id}`)
                 message += "Player " + player_id + " abstained from voting \n"
             } else if (vote_id !== 'X') {
                 message += "Player " + player_id + " voted Player " + vote_id + "\n"
             }
         }
         let out_player_id = data['out_player_id']
-        if (out_player_id !== '0') {
-            message += "Player" + out_player_id + +" is voted out.\n"
-        } else {
+        if (out_player_id == 0) {
             message += "Nobody gets voted out.\n"
+        } else {
+            message += "Player" + out_player_id + +" is voted out.\n"
         }
     } else if (step === "END_GAME") {
         message = "Game Over.\n"
@@ -421,29 +430,33 @@ function generateGeneralMessage(data, step) {
 function generateWolvesMessage(data, step) {
     console.log("in wolevs messages")
     // target_id is the target that an individual wolf selects
+    let player_id = data['current_player_id']
+    let sender_id = data['sender_id']
     let target_id = data['target_id']
     console.log(`target_id ${target_id}`)
     // out_player_id is the common target of all the wolves
     let out_player_id = data['out_player_id']
     console.log(`out_player_id ${out_player_id}`)
     let message = ""
+    let kill = data['kill']
+    let player = data['current_player_id']
+    let sender = data['sender_id']
     // if the wolf hasn't decide who to choose
-    if (target_id === null) {
+    if (kill === "XX") {
         message = "Now is your time to perform actions. Please choose a player to kill. \n All wolves should pick the same player to kill. You can choose to kill no one."
     }
     // if the wolves didn't pick the same target
-    else if (out_player_id === null) {
-        //TODO: how to distinguish different wolves?
-        message = "You chose to kill player " + target_id + ", but your teammate chose a different target. \n"
-            + "All wolves should pick the same player to kill. You can have a discussion in the chat to decide a common target."
-    }
-    // if the wolves picked a target
-    else if (out_player_id !== '0') {
-        message = "You chose to kill player " + out_player_id + "."
-    }
-    // out_player_id === 0, if the wolves did not pick any target
-    else {
-        message = "You chose to kill no one"
+    else if (player === sender) {
+        if (out_player_id === null) {
+            message = "You chose to kill player " + target_id + ", but your teammate chose a different target. \n"
+                + "All wolves should pick the same player to kill. You can have a discussion in the chat to decide a common target."
+        }
+        // if the wolves picked a target
+        else if (out_player_id == 0) {
+            message = "You chose to kill no one"
+        } else {
+            message = "You chose to kill player " + out_player_id + "."
+        }
     }
     return message
 }
@@ -464,12 +477,12 @@ function generateGuardMessage(data, step) {
         message += "Note that you can not protect the same player consecutively, and you can choose to protect nobody."
     }
     // if the guard picked a target
-    else if (target_id !== '0') {
-        message = "You chose to protect player " + target_id + "."
+    else if (target_id == 0) {
+        message = "You chose to protect no one"
     }
     // if the guard did not pick any target
     else {
-        message = "You chose to protect no one"
+        message = "You chose to protect player " + target_id + "."
     }
     return message
 }
@@ -491,7 +504,7 @@ function generateSeerMessage(data, step) {
         message += "Note that you can not choose not to see anybody."
     }
     // if the seer picked a target
-    else if (target_id !== '0') {
+    else if (target_id !== 0) {
         let target_role = data['message']
         if (target_role === "Good") {
             message = "Player " + target_id + " is good."
@@ -540,11 +553,13 @@ function addSystemMessage(message) {
 // */
 function updateGameStatus(id) {
     hideConfirmBtn(id);
+    let sender_id = systemGlobal.current_player_id
     chatSocket.send(JSON.stringify({
         'type': 'system-message',
         'update': 'update',
         'target_id': id, /* should be the target id we choose, here for testing */
         'times_up': "False",
+        'sender_id': sender_id,
     }))
 }
 
@@ -609,7 +624,9 @@ function hideConfirmBtn(id) {
 function updateWithPlayersOut(outPlayersId) {
     console.log(`update out player ${outPlayersId}`)
     let img = document.getElementById('avatar_' + outPlayersId + '_img')
-    img.src = '/static/werewolves/images/out.png'
+    if (img) {
+        img.src = '/static/werewolves/images/out.png'
+    }
 }
 
 function updateSpeaker(data) {
@@ -621,7 +638,7 @@ function updateSpeaker(data) {
     let user_role = data['current_player_role']
     let speaker_role = data['current_speaker_role']
     let status = data['current_player_status']
-    if (status === "ALIVE"  && speakerId === userId) {
+    if (status === "ALIVE" && speakerId === userId) {
         showNextStepButton("speak")
     }
     //update speaker's avatar
