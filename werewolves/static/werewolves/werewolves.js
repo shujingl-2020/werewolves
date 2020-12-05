@@ -120,41 +120,43 @@ function playerMessage(data, message) {
 function systemMessageHandle(data) {
     updateSystemGlobal(data)
     let step = data['step']
-    let group = data['group']
     let role = data['current_player_role']
     let target_id = data['target_id']
     let out_player_id = data['out_player_id']
     let player_id = data['current_player_id']
     let trigger_id = data['trigger_id']
+    console.log(`trigger id ${trigger_id}`)
     let status = data['current_player_status']
     let speaker_id = data['speaker_id']
     // generate system message according to step.
     if (!(step === "SPEECH" && speaker_id === null)) {
-        let systemMessage = generateSystemMessage(data, step)
+        let systemMessages = generateSystemMessage(data, step)
         // show message in the chatbox.
         if (step === "END_DAY" || step === "ANNOUNCE" || step === "END_VOTE" || step === 'END_GAME') {
-            wait(1000)
-            addSystemMessage(systemMessage)
+            wait(3000)
+            displayMessages(systemMessages)
         } else {
-            addSystemMessage(systemMessage)
+            displayMessages(systemMessages)
         }
     }
     if (step === 'END_GAME') {
         updateEndGame(data)
+        sendEndGame()
+        endGame()
     } else if (step === 'ANNOUNCE' || step === 'END_VOTE') {
         console.log(`in announce ${out_player_id}`)
-        if (group === "general" && out_player_id !== null) {
+        if (out_player_id !== null) {
             updateWithPlayersOut(out_player_id)
         }
-        if (group === "general" && player_id === trigger_id) {
+        if (player_id === trigger_id) {
             console.log("call next step in announce")
             nextStep()
         }
     } else if (step === 'SPEECH') {
-        if (group === "general" && speaker_id === null && player_id === trigger_id) {
+        if (speaker_id === null && player_id === trigger_id) {
             console.log("call next step in speech")
             nextStep()
-        } else if (group === "general" && speaker_id !== null) {
+        } else if (speaker_id !== null) {
             updateSpeaker(data)
         }
     } else if (step === "VOTE") {
@@ -163,19 +165,21 @@ function systemMessageHandle(data) {
         if (all_players_vote === "XXXXXX") {
             removeOldSpeaker()
         }
-        if (status === "ALIVE" && group === "general" && target_id === null) {
+        if (status === "ALIVE" && target_id === null) {
             showNextStepButton("vote")
-        } else if (status === "ALIVE" && group === "general" && target_id !== null) {
+        } else if (status === "ALIVE" && target_id !== null) {
             hideNextStepButton()
         }
-    } else if (step === 'END_DAY' || (step === 'WOLF' && out_player_id !== null)
-        || (step === 'GUARD' && target_id !== null) || (step === 'SEER' && target_id !== null)) {
-        let role = data['current_player_role']
-        if (group === "general" && step === role) {
-            console.log("hide next button if group === general")
+        if (out_player_id !== null && player_id === trigger_id) {
+            nextStep()
+        }
+    } else if (status === "ALIVE" && (step === 'END_DAY' || (step === 'WOLF' && out_player_id !== null)
+        || (step === 'GUARD' && target_id !== null) || (step === 'SEER' && target_id !== null))) {
+        if (step === role) {
+            console.log("hide next button if end action at night")
             hideNextStepButton();
         }
-        if (group === "general" && player_id === trigger_id) {
+        if (player_id === trigger_id) {
             console.log(`next step for end day and end action at night`)
             nextStep()
         }
@@ -337,17 +341,18 @@ function addChatMessage(message, username, id) {
  * @param step: current game step
  */
 function generateSystemMessage(data, step) {
-    let message = ''
-    let group = data['group']
+    let message = []
+    // let group = data['group']
     let role = data['current_player_role']
     let status = data['current_player_status']
-    if (status === "ALIVE" && group === "wolves" && step === "WOLF" && step === role) {
+    //send different messages according to role of the player
+    if (status === "ALIVE" && step === "WOLF" && step === role) {
         message = generateWolvesMessage(data, step)
-    } else if (status === "ALIVE" && group === "guard" && step === "GUARD" && step === role) {
+    } else if (status === "ALIVE" && step === "GUARD" && step === role) {
         message = generateGuardMessage(data, step)
-    } else if (status === "ALIVE" && group === "seer" && step === "SEER" && step === role) {
+    } else if (status === "ALIVE" && step === "SEER" && step === role) {
         message = generateSeerMessage(data, step)
-    } else if (group === "general") {
+    } else {
         message = generateGeneralMessage(data, step)
     }
     return message
@@ -360,82 +365,82 @@ function generateSystemMessage(data, step) {
  */
 function generateGeneralMessage(data, step) {
     let target_id = data['target_id']
-    let message = ""
+    let message = []
     let role = data['current_player_role']
+    let is_kill = data['message']
     //send this message when the the night starts
     if (step === "END_DAY") {
-        message = "It is night time."
+        message.push("It is night time.")
     }
     //send this message when the wolf hasn't chosen any target
-    else if (role !== "WOLF" && step === "WOLF" && target_id === null) {
-        console.log(`target_id in general message ${target_id}`)
-        message = "Wolf is choosing a player to kill."
+    else if (role !== "WOLF" && step === "WOLF" && is_kill === "False") {
+        console.log(`is_kill if role is not wolf ${is_kill}`)
+        message.push("Wolf is choosing a player to kill.")
     }
     //send this message when the guard hasn't chosen any target
     else if (role !== "GUARD" && step === "GUARD" && target_id === null) {
-        message = "Guard is choosing a player to protect."
+        message.push("Guard is choosing a player to protect.")
     }
     //send this message when the seer hasn't chosen any target
     else if (role !== "SEER" && step === "SEER" && target_id === null) {
-        message = "Seer is seeing a player's identity."
+        message.push("Seer is seeing a player's identity.")
     } else if (step === "END_NIGHT") {
-        message = "It is day time."
+        message.push("It is day time.")
     } else if (step === "ANNOUNCE") {
         let out_player_id = data['out_player_id']
         if (out_player_id !== 0) {
-            message = "Last night, player " + out_player_id + " gets killed."
+            message.push("Last night, player " + out_player_id + " gets killed.")
         } else if (out_player_id === 0) {
             console.log(`out_player_id in announce ${out_player_id}`)
-            message = "Last night, nobody gets killed."
+            message.push("Last night, nobody gets killed.")
         }
     } else if (step === "SPEECH") {
         let speaker_id = data['speaker_id']
         if (speaker_id === null) {
-            message = "Now each player needs to make a speech."
+            message.push("Now each player needs to make a speech.")
         } else {
-            message = "It's player " + speaker_id + "'s turn to speak."
+            message.push("It's player " + speaker_id + "'s turn to speak.")
         }
     } else if (step === "VOTE") {
-        console.log(`target id in vote ${target_id}`)
-        //TODO: Need to distinguish each player
         let all_players_vote = data['all_players_vote']
+        console.log(`all players vote ${all_players_vote}`)
         let player_id = data['current_player_id']
         let sender_id = data['sender_id']
         //print this only when nobody has voted
         if (all_players_vote === "XXXXXX") {
-            message = "Now each player can make a vote. You can abstain from voting if you don't make a choice."
-        } else if (player_id === sender_id && target_id !== "0") {
-            message = "You voted player " + target_id + "."
+            message.push("Now each player can make a vote. You can abstain from voting.")
+        } else if (player_id === sender_id && target_id !== 0) {
+            message.push("You voted player " + target_id + ".")
         } else if (player_id === sender_id && target_id === 0) {
             console.log(`target id if abstain ${target_id}`)
-            message = "You abstained from voting."
+            message.push("You abstained from voting.")
         }
     } else if (step === "END_VOTE") {
-        // TODO: votes maybe an array of objects
         let votes = data['all_players_vote']
-        for (let i = 0; i < votes.length; i++) {
+        for (let i = 0; i < 6; i++) {
             let player_id = String(i + 1)
             let vote_id = votes[i]
-            if (vote_id === 0) {
-                console.log(`in vote ${vote_id}`)
-                message += "Player " + player_id + " abstained from voting \n"
+            console.log(`in vote ${typeof vote_id}`)
+            if (vote_id === '0') {
+                message.push("Player " + player_id + " abstained from voting")
             } else if (vote_id !== 'X') {
-                message += "Player " + player_id + " voted Player " + vote_id + "\n"
+                message.push("Player " + player_id + " voted Player " + vote_id)
             }
         }
         let out_player_id = data['out_player_id']
+        console.log(`in vote out_player ${typeof out_player_id}`)
         if (out_player_id === 0) {
-            message += "Nobody gets voted out.\n"
-        } else {
-            message += "Player" + out_player_id + +" is voted out.\n"
+            message.push("Nobody gets voted out")
+        } else if (out_player_id){
+            message.push("Player " + out_player_id + " is voted out.")
         }
     } else if (step === "END_GAME") {
-        message = "Game Over.\n"
+        message.push("Game Over.")
         let winStatus = data['message']
         if (winStatus === 'Win') {
-            message += "Good people won."
+            message.push("Good people won.")
         } else {
-            message += "Werewolves won."
+            message.push("Werewolves won.")
         }
     }
     return message
@@ -450,32 +455,36 @@ function generateGeneralMessage(data, step) {
 function generateWolvesMessage(data, step) {
     console.log("in wolves messages")
     // target_id is the target that an individual wolf selects
-    let player_id = data['current_player_id']
-    let sender_id = data['sender_id']
     let target_id = data['target_id']
     console.log(`target_id ${target_id}`)
     // out_player_id is the common target of all the wolves
     let out_player_id = data['out_player_id']
     console.log(`out_player_id ${out_player_id}`)
-    let message = ""
+    let message = []
     let is_kill = data['message']
     let player = data['current_player_id']
     let sender = data['sender_id']
     // if the wolf hasn't decide who to choose
     if (is_kill === "False") {
-        message = "Now is your time to perform actions. Please choose a player to kill. \n All wolves should pick the same player to kill. You can choose to kill no one."
+        message.push("Now is your time to perform actions. Please choose a player to kill.")
+        message.push("All wolves should pick the same player to kill. You can choose to kill no one.")
     }
     // if the wolves didn't pick the same target
     else if (player === sender) {
         if (out_player_id === null) {
-            message = "You chose to kill player " + target_id + ", but your teammate chose a different target. \n"
-                + "All wolves should pick the same player to kill. You can have a discussion in the chat to decide a common target."
+            if (target_id !== 0) {
+                message.push("You chose to kill player " + target_id + ", but your teammate chose a different target.")
+                message.push("All wolves should pick the same player to kill. You can have a discussion in the chat to decide a common target.")
+            } else {
+                message.push("You chose to kill no one, but your teammate selected a target.")
+                message.push("Wolves should have a common target. You can have a discussion in the chat to decide a common target.")
+            }
         }
         // if the wolves picked a target
-        else if (out_player_id == 0) {
-            message = "You chose to kill no one"
+        else if (out_player_id === 0) {
+            message.push("You chose to kill no one.")
         } else {
-            message = "You chose to kill player " + out_player_id + "."
+            message.push("You chose to kill player " + out_player_id + ".")
         }
     }
     return message
@@ -490,19 +499,19 @@ function generateGuardMessage(data, step) {
     console.log("in guard messages")
     let target_id = data['target_id']
     console.log(`target_id ${target_id}`)
-    let message = ""
+    let message = []
     // if the guard hasn't decided who to choose
     if (target_id === null) {
-        message = "Now is your time to perform actions. Please choose a player to protect. \n"
-        message += "Note that you can not protect the same player consecutively, and you can choose to protect nobody."
+        message.push("Now is your time to perform actions. Please choose a player to protect.")
+        message.push("Note that you can not protect the same player consecutively, and you can choose to protect nobody.")
     }
     // if the guard picked a target
     else if (target_id === 0) {
-        message = "You chose to protect no one"
+        message.push("You chose to protect no one.")
     }
     // if the guard did not pick any target
     else {
-        message = "You chose to protect player " + target_id + "."
+        message.push("You chose to protect player " + target_id + ".")
     }
     return message
 }
@@ -517,28 +526,38 @@ function generateSeerMessage(data, step) {
     console.log("in seer messages")
     let target_id = data['target_id']
     console.log(`target_id ${target_id}`)
-    let message = ""
+    let message = []
     // if the seer hasn't decided who to choose
     if (target_id === null) {
-        message = "Now is your time to perform actions. Please choose a player to see a player's identity. \n The player will be either good or bad. \n"
-        message += "Note that you can not choose not to see anybody."
+        message.push("Now is your time to perform actions. Please choose a player to see a player's identity.")
+        message.push("The player will be either good or bad.")
+        message.push("Note that you can not choose not to see anybody.")
     }
     // if the seer picked a target
     else if (target_id !== 0) {
         let target_role = data['message']
         if (target_role === "Good") {
-            message = "Player " + target_id + " is good."
+            message.push("Player " + target_id + " is good.")
         } else if (target_role === "Bad") {
-            message = "Player " + target_id + " is bad."
+            message.push("Player " + target_id + " is bad.")
         }
     }
     // if the seer did not pick any target
     else {
-        message = "You chose to see no one"
+        message.push("You chose to see no one")
     }
     return message
 }
 
+/**
+ * add each message separately.
+ */
+function displayMessages(messages) {
+    for (message of messages) {
+        addSystemMessage(message)
+        wait(500)
+    }
+}
 
 /**
  * add the system announcement to the chat box(or title)
@@ -687,7 +706,10 @@ function removeOldSpeaker() {
 }
 
 
-//decide what content to show in the button
+/**
+ * the button is used for night action, finish speaking, and abstain vote
+ * @param option
+ */
 function showNextStepButton(option) {
     let btn = document.getElementById('next_step_button')
     btn.style.display = 'block'
@@ -710,18 +732,25 @@ function showNextStepButton(option) {
     }
 }
 
-// hide the step button when the next step function is tirggered
+/**
+ * hide next step button when the game moves to next step
+ */
 function hideNextStepButton() {
     let btn = document.getElementById('next_step_button')
+    console.log(`next step button ${btn}`)
     if (btn && btn.style.display === 'block') {
         btn.style.display = 'none'
         btn.disabled = true
     }
 }
 
+/**
+ * update the canvas when the game is over
+ * @param data information got from system message
+ */
 function updateEndGame(data) {
     let winStatus = data['message']
-    let area = docuemnt.getElementById('show_end_game')
+    let area = document.getElementById('show_end_game')
     let text = ''
     if (winStatus === 'Win') {
         text = 'Good People Won!'
@@ -759,6 +788,12 @@ function exitGame() {
    chatSocket.send(JSON.stringify({
        'type': 'exit-game-message'
    }))
+}
+
+function sendEndGame() {
+    chatSocket.send(JSON.stringify({
+        'type': 'end-game-message'
+    }))
 }
 
 function endGame() {
