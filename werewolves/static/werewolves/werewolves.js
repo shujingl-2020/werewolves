@@ -431,7 +431,7 @@ function generateWolvesMessage(data, step) {
     let sender = data['sender_id']
     // if the none of the wolves have decided who to choose
     if (is_kill === "False") {
-        console.log(`${is_kill}`)
+        // console.log(`${is_kill}`)
         message.push("Now is your time to perform actions. Please choose a player to kill.")
         message.push("All wolves should pick the same player to kill. You can choose to kill no one.")
     }
@@ -440,7 +440,7 @@ function generateWolvesMessage(data, step) {
         if (target_id !== 0 && player === sender) {
             message.push("You chose to kill player " + target_id + ", but your teammate chose a different target.")
             message.push("All wolves should pick the same player to kill. You can have a discussion in the chat to decide a common target.")
-        } else if (arget_id === 0 && player === sender){
+        } else if (target_id === 0 && player === sender){
             message.push("You chose to kill no one, but your teammate selected a target.")
             message.push("Wolves should have a common target. You can have a discussion in the chat to decide a common target.")
         }
