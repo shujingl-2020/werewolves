@@ -119,6 +119,7 @@ class GameStatus(models.Model):
     seer            = models.CharField(max_length=6, null=True, blank=True)
     guard           = models.CharField(max_length=6, null=True, blank=True)
     villagers       = models.CharField(max_length=6, null=True, blank=True)
+    vote            = models.CharField(max_length=6, null=True, blank=True)
     # Booleans indicating whose turn this is at night (tentative).
     #wolves_turn     = models.BooleanField(default=False)
     #seer_turn       = models.BooleanField(default=False)
