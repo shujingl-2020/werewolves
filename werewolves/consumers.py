@@ -41,7 +41,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 self.channel_name
             )
 
-        # TODO this will call init_game_status 6 times, could be updated
+        # TODO: this will call init_game_status 6 times, could be updated
         if (role != None):
             await self.channel_layer.group_add(
                 self.general_group,
@@ -211,6 +211,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
         # exit game message
         elif message_type == 'exit-game-message':
+            # Delete current player
             await database_sync_to_async(self.delete_current_player)()
             await self.channel_layer.group_send(
                 self.general_group,
@@ -305,6 +306,9 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     def get_num_players(self):
         return Player.objects.all().count()
+    
+    def get_first_player_username(self):
+        return Player.objects.all()[0].user.username
 
     def get_all_players(self):
         players = Player.objects.all()
@@ -1040,6 +1044,27 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     async def exit_game_message(self, event):
         print('exiting game')
-        await self.send(text_data=json.dumps({
-            'message-type': 'exit_game_message'
-        }))
+        # Get number of players in the database
+        count    = await database_sync_to_async(self.get_num_players)()
+        # If there are more than 1 player in the database, assign new host
+        if count > 0:
+            # Obtain the new host, which is the second player in the database
+            all_players = await database_sync_to_async(self.get_all_players)()
+            last_player = await database_sync_to_async(self.get_last_joined_player)()
+            new_host    = await database_sync_to_async(self.get_first_player_username)()
+            # Send message only to the new host
+            if self.scope['user'].username == new_host:
+                await self.send(text_data=json.dumps({
+                    'message-type': 'change_host_message',
+                    'last_player': last_player,
+                    'players': all_players,
+                    'message': count
+                }))
+            else:
+                await self.send(text_data=json.dumps({
+                    'message-type': 'players_message',
+                    'last_player': last_player,
+                    'players': all_players,
+                    'message': count
+                }))
+            

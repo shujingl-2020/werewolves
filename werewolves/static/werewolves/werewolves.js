@@ -29,6 +29,26 @@ var systemGlobal = {
     sender_id: null,
 }
 
+// Update the count down every 1 second
+// var countDown = setInterval(function() {
+//     // Timer countdown is 2 minutes
+//     var time = 120000
+      
+//     // Time calculations for minutes and seconds
+//     var minutes = Math.floor((time % (1000 * 60 * 60)) / (1000 * 60))
+//     var seconds = Math.floor((time % (1000 * 60)) / 1000)
+      
+//     // Output the result in an element with id="id_timer"
+//     document.getElementById("id_timer").innerHTML = minutes + "m " + seconds + "s "
+      
+//     // If the count down is over, trigger next step 
+//     if (time < 0) {
+//       clearInterval(countDown)
+//       // Call next_step here
+//       nextStep(true)
+//     }
+//   }, 1000);
+
 /**
  * when websocket receive message, call addMessage
  */
@@ -47,8 +67,8 @@ chatSocket.onmessage = function (e) {
         let id = data['id']
         sanitize(message)
         addChatMessage(message, username, id)
-    } else if (message_type === 'exit_game_message') {
-        endGame()
+    } else if (message_type === 'change_host_message') {
+        playerMessage(data, message)
     }
 }
 
@@ -56,9 +76,12 @@ chatSocket.onmessage = function (e) {
  moduralized player message part of in message function
  **/
 function playerMessage(data, message) {
+    // Get message type from data
+    let message_type = data['message-type']
+
     // Update number of players on the page
     let player_count = document.getElementById('id_player_num')
-    player_count.innerHTML = message + ' / 6' // TODO: Change to ' / 6' later
+    player_count.innerHTML = message + ' / 6'
 
     // Update list of player names on the page
     let all_players = data['players']
@@ -81,13 +104,13 @@ function playerMessage(data, message) {
 
     let start_button = document.getElementById('id_start_game_button')
     // Show start button only for the first joined player
-//        if (message === 1) {
-    start_button.style.visibility = 'visible'
-//        }
+    if (message === 1 || message_type === 'change_host_message') {
+        start_button.style.visibility = 'visible'
+    }
     // Enable start button for the first player when we have two players in the game
-//        if (message === 2 && start_button.style.visibility === 'visible') {
-    start_button.disabled = false
-//        }
+    if (message === 6 && start_button.style.visibility === 'visible') {
+        start_button.disabled = false
+    }
 }
 
 
@@ -732,15 +755,14 @@ function updateEndGame(data) {
     guard_img.src = '/static/werewolves/images/guard.png'
 }
 
+function exitGame() {
+   chatSocket.send(JSON.stringify({
+       'type': 'exit-game-message'
+   }))
+}
 
-//function exitGame() {
-//    chatSocket.send(JSON.stringify({
-//        'type': 'exit-game-message'
-//    }))
-//}
-//
-//function endGame() {
-//    let end_button = document.getElementById('id_end_game_button')
-//    end_button.disabled = false
-//    end_button.click()
-//}
+function endGame() {
+   let end_button = document.getElementById('id_end_game_hidden_button')
+   end_button.disabled = false
+   end_button.click()
+}
