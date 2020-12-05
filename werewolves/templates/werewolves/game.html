@@ -6,7 +6,12 @@
 {% endblock %}
 
 {% block content %}
-
+<div>
+    <form method="get" action="{% url 'rules' %}">
+        <button class="hidden_buttons buttons log-out" style="display: none" id="id_end_game_hidden_button" disabled>Exit the Game</button>
+        <span id="error" class="error"></span>
+    </form>
+</div>
 <div class="container">
     <div class="row" id="canvas">
         <div class="col-md-12 col-lg-12">
@@ -196,12 +201,6 @@
 <!--                    <button class="buttons" id="message_button" onclick="nextStep()">Next Step</button>-->
 <!--                </div>-->
                 <div class="col" id="id_timer"> 
-                </div>
-                <div>
-                    <form method="get" action="{% url 'rules' %}">
-                        <button class="hidden_buttons buttons" style="visibility: hidden" id="id_end_game_hidden_button" disabled></button>
-                        <span id="error" class="error"></span>
-                    </form>
                 </div>
             </div>
         </div>
