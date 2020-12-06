@@ -122,6 +122,7 @@ function systemMessageHandle(data) {
         }
     }
     if (step === 'END_GAME') {
+        wait(2000)
         updateEndGame(data)
         showEndGameBtn()
         sendEndGame()
@@ -742,14 +743,11 @@ function hideNextStepButton() {
  */
 function updateEndGame(data) {
     let winStatus = data['message']
-    console.log(`winStatus ${winStatus}`)
     let area = document.getElementById('show_end_game')
     let text = ''
     if (winStatus === true) {
-        console.log(`winStatus if good people win ${winStatus}`)
         text = 'Good People Won!'
     } else {
-        console.log(`winStatus if werewolves win ${winStatus}`)
         text = 'Werewolves Won!'
     }
     area.innerHTML = text

@@ -325,7 +325,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
             'all_players_vote': all_players_vote,  #a string contains voting result for all players
             'message': message,  # in step seer, good/bad person; in step wolf, if a wolf select a target
         }))
-        print("end send system message")
 
 
 # create a chat message
