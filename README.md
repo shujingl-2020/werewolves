@@ -14,7 +14,6 @@ virtual environment directory into your .gitignore
 
 $ python3 -m venv my_env
 $ source my_env/bin/activate
-$ my_env\Scripts\activate.bat
 $ pip install –U pip
 $ pip install django
 ****************************************************************
@@ -48,8 +47,9 @@ URL for mysite: 127.0.0.1:8000/chat/
 
 ****************************************************************
 Synchronize database:
-
+$ python manage.py makemigrations 
 $ python manage.py migrate --run-syncdb
+$ python manage.py runserver
 ****************************************************************
 
 Errors handling:
