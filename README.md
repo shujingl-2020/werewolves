@@ -49,6 +49,8 @@ URL for mysite: 127.0.0.1:8000/chat/
 Synchronize database:
 $ python manage.py makemigrations 
 $ python manage.py migrate --run-syncdb
+
+Run server:
 $ python manage.py runserver
 ****************************************************************
 
