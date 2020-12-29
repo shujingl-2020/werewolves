@@ -20,7 +20,7 @@ $ pip install django
 ****************************************************************
 Channels Setup:(Django version 3.1.3, ASGI/Channels version 3.0.0)
 
-$ python -m pip install -U channels
+$ python -m pip install -U channels 
 
 important!install the latest version of Channels
 $ git clone git@github.com:django/channels.git
