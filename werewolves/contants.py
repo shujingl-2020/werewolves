@@ -1,0 +1,19 @@
+GAME_STATUS_OVER = "over"
+
+GAME_MODE_TUBIAN = "tubian"
+GAME_MODE_TUCHENG = "tucheng"
+
+PLAYER_STATUS_INGAME = "inGame"
+PLAYER_STATUS_OFFLINE = "offline"
+PLAYER_STATUS_WAITING = "waiting"
+
+ROLE_SEER = "seer"
+ROLE_WEREWOLF = "werewolf"
+ROLE_ALPHAWOLF = "alphaWolf"
+ROLE_VILLAGER = "villager"
+ROLE_GUARD = "guard"
+ROLE_VILLAGEHEAD = "villageHead"
+ROLE_WITCH = "witch"
+ROLE_ARMSDEALER= "armsDealer"
+
+GAME_ID_DEFAULT = -1

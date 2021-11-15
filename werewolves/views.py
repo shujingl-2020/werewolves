@@ -1,3 +1,6 @@
+import json
+import random
+
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
@@ -8,7 +11,7 @@ from django.urls import reverse
 from django.views.decorators.csrf import ensure_csrf_cookie
 
 from werewolves.forms import LoginForm, RegisterForm
-from werewolves.models import Player
+from werewolves.models import Player, Game
 
 @login_required
 def rulespage_action(request):
@@ -39,26 +42,42 @@ def waitingroom_action(request):
 @ensure_csrf_cookie
 def start_game_action(request):
     if request.method == 'GET':
-        # get the role of the current player
-        requestPlayer = Player.objects.get(user=request.user)
-        context = {}
-        context['identity'] = requestPlayer.role
-        # get all the players, so that front end can update the canvas avatars accordingly
-        # get the number and username of all the players
-        # to avoid the situation when the player id is random in the database, we will manually create id
-        players = Player.objects.all()
-        print(f'all players {players}')
-        for player in players:
-                id = str(player.id_in_game)
-                context['num' + id ] = id
-                context['username' + id] = player.user.username
-                if requestPlayer.role == "WOLF" and player.role == "WOLF":
-                    context['avatar'+ id] = "werewolves/images/bad_avatar.png"
-                else:
-                    context['avatar'+ id] = "werewolves/images/good_avatar.png"
-        # show different avatars
-        return render(request, 'werewolves/game.html', context)
+        requestPlayer = Player.objects.get(username=request.username)
+        players = Player.objects.select_for_update.filter(gameID=requestPlayer.gameID)
+        context = json.loads(request.context)
+        config = context['roleConfig']
+        allRoles = []
+        for role in config:
+            for a in range(config[role]['num']):
+                allRoles.append(role)
+        random.shuffle(allRoles)
 
+        roleAssignment={}
+        i=0
+        for player in players:
+            roleAssignment[player.username] = allRoles[i]
+            player.role = allRoles[i]
+            player.save()
+            i+=1
+
+        game = Game.objects.select_for_update.filter(id=requestPlayer.gameID)
+        game.playersList = json.dumps(roleAssignment)
+        game.save()
+        response={}
+        response['roleAssignment'] = roleAssignment
+        return render(request, 'werewolves/game.html', response)
+
+
+@login_required
+@ensure_csrf_cookie
+def join_game_action(request):
+    if request.method == 'GET':
+        # get the role of the current player
+        requestPlayer = Player.objects.get(username=request.username)
+        response = {}
+        game = Game.objects.get(id=requestPlayer.gameID)
+        response['roleAssignment'] = game.playersList
+        return render(request, 'werewolves/game.html', response)
 
 def login_action(request):
     context = {}

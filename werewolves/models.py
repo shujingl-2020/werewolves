@@ -43,21 +43,35 @@ class PlayerStatus(Enum):
     def choices(cls):
         return tuple((i.name, i.value) for i in cls)
 
+class Game(models.Model):
+    step = models.CharField(default="NONE")
+    # a string that stores each role's num, eg. "wolves: 2, villagers: 3"
+    rolesNum = models.CharField(default="NONE")
+    isEnd = models.BooleanField(default=True)
+    # a string that stores all players' usernames, eg "a b c"
+    playersList = models.CharField(default="NONE")# json string, username1:role
+    onlinePlayerNum = models.IntegerField(null=True)
+    neededPlayerNum = models.IntegerField(null=True)
+    gameStatus = models.CharField(default="NONE")
+    gameMode = models.CharField(default="NONE")
+    roleOrder = models.CharField(default="NONE")
+
 # The Player model keeps track of the player's username and role.
 class Player(models.Model):
-    # Username must be shorter than 30 characters.
-    user     = models.ForeignKey(User, on_delete=models.PROTECT, related_name="player", null=True)
-    role     = models.CharField(max_length=30, choices=PlayerRole.choices(), default="NONE")
-    status   = models.CharField(max_length=30, choices=PlayerStatus.choices(), default="ALIVE")
-    #vote     = models.ForeignKey('self', on_delete=models.CASCADE, related_name='voted', null=True)
-    vote     = models.IntegerField(null=True)
-    kill     = models.IntegerField(null=True)
-    # TODO: Tentative field, indicate whether a player is making a speech or not
-    speech   = models.BooleanField(default=False)
-    id_in_game = models.PositiveSmallIntegerField(default=0)
+   username     = models.CharField(max_length=30, primary_key=True)
+   gameID = models.IntegerField(default=-1)
+   idInGame = models.IntegerField(null=True)
+   role = models.CharField(default="NONE")
+   #online, offline, waiting, inGame
+   status = models.CharField(default="NONE")
+   actionStatus = models.CharField(default="NONE")
+   joinedWaitingRoomTimestamp = models.IntegerField(null=True)
+   alive = models.BooleanField(default=True)
+   # should be a stringify dictionary to store different roles’ actions
+   context = models.CharField(default="NONE")
 
-    def __str__(self):
-        return 'Player' + str(self.id_in_game) +  ": " + self.role
+   def __str__(self):
+        return 'Player' + str(self.username) +  ": " + self.role
 
 
 class Message(models.Model):

@@ -1,12 +1,26 @@
 import json
 import random
+
+from werewolves.contants import GAME_STATUS_OVER, PLAYER_STATUS_OFFLINE, PLAYER_STATUS_WAITING, PLAYER_STATUS_INGAME, \
+    GAME_ID_DEFAULT
 from werewolves.models import Player, PlayerRole, GameStatus, Message
 from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncWebsocketConsumer
+import time
 from asgiref.sync import sync_to_async
 
-
 class ChatConsumer(AsyncWebsocketConsumer):
+
+    def __init__(self, *args, **kwargs):
+
+        super().__init__(*args, **kwargs)
+
+        self.messageTypeToFunc = {
+            "getHost": self.getHost,
+            "createPlayer": self.createPlayer,
+            "playerWentOnline": self.playerWentOnline
+        }
+
     async def connect(self):
         self.general_group = "general_group"  # all players are in this group
         self.wolves_group = "wolves_group"  # all wolves are in this group
@@ -58,6 +72,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             self.general_group,
             self.channel_name
         )
+        await database_sync_to_async(self.playerWentOffline)()
 
         self.close()
 
@@ -68,7 +83,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
         # join message
         if message_type == 'join-message':
-            await database_sync_to_async(self.create_player)()
+            await database_sync_to_async(self.createPlayer)()
             # Get the current number of players in the database
             num_players = await database_sync_to_async(self.get_num_players)()
             # TODO: Change later to <= 6
@@ -344,13 +359,107 @@ class ChatConsumer(AsyncWebsocketConsumer):
         role = player.role
         return (id, username, role)
 
+
+    async def playerWentOnline(self):
+        await database_sync_to_async(self.createPlayer)()
+        game = await database_sync_to_async(self.getGameForPlayer)()
+        if game is not None and game.gameStatus == GAME_STATUS_OVER:
+            await self.send(text_data=json.dumps({
+                'message-type': "getGameOfPlayer",
+                'message': game,
+            }))
+
     #create a new player
-    def create_player(self):
+    def createPlayer(self):
         user = self.scope["user"]
-        player = Player.objects.filter(user=user)
-        if len(player) == 0:
-            new_player = Player(user=user)
-            new_player.save()
+        player = Player.objects.select_for_update().get(username=user.username)
+        if player is None:
+            player = Player(username=user.username)
+        player.status = PLAYER_STATUS_WAITING
+        player.joinedWaitingRoomTimestamp = round(time.time() * 1000)
+        player.save()
+
+    def getGameForPlayer(self, player):
+        if player.gameID != GAME_ID_DEFAULT:
+            game = Player.objects.select_for_update().get(id=player.gameID)
+            if game.gameStatus == "online":
+                return game
+        return None
+
+    def playerWentOffline(self):
+        user = self.scope["user"]
+        player = Player.objects.select_for_update().get(username=user.username)
+        if player is None:
+            return
+        player.status = PLAYER_STATUS_OFFLINE
+        player.save()
+        if player.gameID != GAME_ID_DEFAULT:
+            game = Player.objects.select_for_update().get(id=player.gameID)
+            game.onlinePlayerNum -= 1
+            if game.onlinePlayerNum == 0:
+                game.gameStatus = "over"
+                self.channel_layer.group_send(
+                    self.general_group,
+                    {
+                        'type': 'getGameStatusResponse',
+                        'message': "over"
+                    }
+                )
+            game.save()
+
+        self.getHost()
+
+    # set host username
+    def getHost(self):
+        host = Player.objects.filter(gameStatus="waiting").order_by('-joinedWaitingRoomTimestamp').last()
+        self.channel_layer.group_send(
+            self.general_group,
+            {
+                'type': 'getHostResponse',
+                'message': host.username
+            }
+        )
+
+    async def joinGame(self, username):
+        #add wolf player into a special group
+        player= await database_sync_to_async(self.getPlayerByUsernameToUpdate(username))()
+        if player.role == "WOLF":
+            await self.channel_layer.group_add(
+                self.wolves_group,
+                self.channel_name
+            )
+        player.status = PLAYER_STATUS_INGAME
+        player.save()
+        if player.gameID != GAME_ID_DEFAULT:
+            game = Player.objects.select_for_update().get(id=player.gameID)
+            game.onlinePlayerNum += 1
+            game.save()
+        else:
+            self.sendError("game does not exist")
+
+    async def initGame(self):
+        await database_sync_to_async(self.assign_roles_and_ids)()
+        await self.channel_layer.group_send(
+            self.general_group,
+            {
+                'type': 'start_game_message',
+                'message': 'start_game'
+            }
+        )
+
+    def sendError(self,body):
+        self.channel_layer.group_send(
+            self.general_group,
+            {
+                'type': 'error',
+                'message': body
+            }
+        )
+
+    # Used to get the current player's role
+    def getPlayerByUsernameToUpdate(self,username):
+        return Player.objects.select_for_update.get(user=username)
+
 
     #assign roles and id_in_game for every player
     def assign_roles_and_ids(self):
@@ -505,7 +614,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             new_status.vote_select, new_status.vote = self.voted_player()
 
         game = new_status
-        # assign next playe to trigger next step
+        # assign next player to trigger next step
         game.trigger_id = self.get_trigger_id()
         game.save()
 
