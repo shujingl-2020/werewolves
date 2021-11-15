@@ -9,7 +9,7 @@ db.sqlite3
 db 2.sqlite3
 
 # Django generated migrations
-0*.py
+#0*.py
 
 .DS_Store
 

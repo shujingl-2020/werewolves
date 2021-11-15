@@ -6,7 +6,6 @@ class Game(models.Model):
     isEnd = models.BooleanField(max_length=200, default=True)
     # a string that stores all players' usernames, eg "a b c"
     playersList = models.CharField(max_length=200, default="NONE")
-    onlinePlayerNum = models.IntegerField(null=True)
     neededPlayerNum = models.IntegerField(null=True)
     gameMode = models.CharField(max_length=30, default="NONE")  # tubian or tucheng 屠城或者屠边
 
