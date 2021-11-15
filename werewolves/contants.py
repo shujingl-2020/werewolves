@@ -1,4 +1,3 @@
-GAME_STATUS_OVER = "over"
 
 GAME_MODE_TUBIAN = "tubian"
 GAME_MODE_TUCHENG = "tucheng"

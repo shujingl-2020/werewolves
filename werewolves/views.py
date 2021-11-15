@@ -16,27 +16,15 @@ from werewolves.models import Player, Game
 @login_required
 def rulespage_action(request):
     if request.method == 'GET':
-        player_count = Player.objects.count()
-        # TODO: change to player_count >= 6
-        if player_count >= 6:
-            context = { 'enable_button': False }
-        else:
-            context = { 'enable_button': True }
+        context = { 'enable_button': True }
         return render(request, 'werewolves/rules.html', context)
 
 @login_required
 @ensure_csrf_cookie
 def waitingroom_action(request):
     if request.method == 'GET':
-        player_count = Player.objects.count()
         context = {}
-        if player_count >= 6:
-            # If there are more than 6 players, do not allow new player
-            # to enter the waiting room
-            context['enable_button'] = False
-            return render(request, 'werewolves/rules.html', context)
-        else:
-            return render(request, 'werewolves/waitingroom.html', context)
+        return render(request, 'werewolves/waitingroom.html', context)
 
 @login_required
 @ensure_csrf_cookie
@@ -62,6 +50,9 @@ def start_game_action(request):
 
         game = Game.objects.select_for_update.filter(id=requestPlayer.gameID)
         game.playersList = json.dumps(roleAssignment)
+        game.isEnd = False
+        game.neededPlayerNum = len(players)
+        game.gameMode = context['gameMode']
         game.save()
         response={}
         response['roleAssignment'] = roleAssignment
