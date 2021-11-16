@@ -23,35 +23,34 @@ def rulespage_action(request):
 @ensure_csrf_cookie
 def waitingroom_action(request):
     if request.method == 'GET':
-        context = {}
-        return render(request, 'werewolves/waitingroom.html', context)
+        return render(request, 'werewolves/waitingroom.html')
 
 @login_required
 @ensure_csrf_cookie
 def start_game_action(request):
     if request.method == 'GET':
-        requestPlayer = Player.objects.get(username=request.username)
-        players = Player.objects.select_for_update.filter(gameID=requestPlayer.gameID)
         context = json.loads(request.context)
+        playersNames = context['playerNames']
         config = context['roleConfig']
         allRoles = []
         for role in config:
             for a in range(config[role]['num']):
                 allRoles.append(role)
         random.shuffle(allRoles)
-
+        game = Game()
         roleAssignment={}
         i=0
-        for player in players:
+        for username in playersNames:
+            player = Player.objects.select_for_update.get(username=username)
             roleAssignment[player.username] = allRoles[i]
             player.role = allRoles[i]
             player.save()
-            i+=1
+            player.game = game
+            i += 1
 
-        game = Game.objects.select_for_update.filter(id=requestPlayer.gameID)
         game.playersList = json.dumps(roleAssignment)
         game.isEnd = False
-        game.neededPlayerNum = len(players)
+        game.neededPlayerNum = len(playersNames)
         game.gameMode = context['gameMode']
         game.save()
         response={}

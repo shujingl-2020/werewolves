@@ -15,4 +15,11 @@ ROLE_VILLAGEHEAD = "villageHead"
 ROLE_WITCH = "witch"
 ROLE_ARMSDEALER= "armsDealer"
 
-GAME_ID_DEFAULT = -1
+PROCESS_DETECTIVE_NOMINATION = "detectiveNomination"
+PROCESS_DETECTIVE_VOTING = "detectiveVoting"
+PROCESS_DETECTIVE_OVER = "detectiveOver"
+PROCESS_MORNING = "morning"
+PROCESS_VOTING = "voting"
+
+
+PROCESS = [PROCESS_MORNING]
